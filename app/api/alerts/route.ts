@@ -1,14 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getDashboardUserIdFromRequest } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
-  const userId = await getDashboardUserIdFromRequest(req);
-  if (!userId) {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const [{ getDashboardUserIdFromRequest }, { prisma }] = await Promise.all([
+      import("@/lib/auth"),
+      import("@/lib/prisma"),
+    ]);
+    const userId = await getDashboardUserIdFromRequest(req);
+    if (!userId) {
+      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    }
+
     const alerts = await prisma.alert.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
