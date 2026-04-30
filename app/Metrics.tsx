@@ -32,63 +32,6 @@ function createParticles(count: number, durationMin: number, durationMax: number
   }));
 }
 
-function AnimatedNeonLines() {
-  return (
-    <svg
-      className="absolute inset-0 w-full h-full opacity-30"
-      viewBox="0 0 100 100"
-      preserveAspectRatio="none"
-      style={{ pointerEvents: "none" }}
-    >
-      <defs>
-        <linearGradient id="neonGreen" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style={{ stopColor: "#C9EB55", stopOpacity: 0 }} />
-          <stop offset="50%" style={{ stopColor: "#C9EB55", stopOpacity: 0.8 }} />
-          <stop offset="100%" style={{ stopColor: "#C9EB55", stopOpacity: 0 }} />
-        </linearGradient>
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-          <feMerge>
-            <feMergeNode in="coloredBlur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-      <motion.path
-        d="M 10 20 Q 50 10, 90 30"
-        stroke="url(#neonGreen)"
-        strokeWidth="2"
-        fill="none"
-        filter="url(#glow)"
-        initial={{ pathLength: 0 }}
-        animate={{ pathLength: 1 }}
-        transition={{ duration: 4, repeat: Infinity, repeatType: "loop" }}
-      />
-      <motion.path
-        d="M 5 60 L 95 70"
-        stroke="url(#neonGreen)"
-        strokeWidth="1.5"
-        fill="none"
-        filter="url(#glow)"
-        initial={{ pathLength: 0 }}
-        animate={{ pathLength: 1 }}
-        transition={{ duration: 5, repeat: Infinity, repeatType: "loop", delay: 0.5 }}
-      />
-      <motion.path
-        d="M 30 40 L 70 50 Q 80 60, 90 55"
-        stroke="url(#neonGreen)"
-        strokeWidth="1"
-        fill="none"
-        filter="url(#glow)"
-        opacity={0.6}
-        initial={{ pathLength: 0 }}
-        animate={{ pathLength: 1 }}
-        transition={{ duration: 6, repeat: Infinity, repeatType: "loop", delay: 1 }}
-      />
-    </svg>
-  );
-}
-
 function getPricingFeatureTitle(feature: string) {
   if (feature === "Protection: Guardian Basic / Scout") {
     return "Basic monitoring and protection alerts. Emergency Lock is not included.";
@@ -214,10 +157,6 @@ export default function Metrics({ showDashboard = false, showAdminDashboard = fa
         </video>
 
         <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
-          <div className="absolute inset-0 -z-10 opacity-70">
-            <AnimatedNeonLines />
-          </div>
-
           <motion.h1
             initial={{ opacity: 0, y: 30, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
