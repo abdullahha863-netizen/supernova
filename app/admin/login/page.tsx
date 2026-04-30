@@ -6,6 +6,8 @@ import AuthCard from "@/components/auth/AuthCard";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 
+export const dynamic = "force-dynamic";
+
 export default function AdminLoginPage() {
   const router = useRouter();
   const [adminKey, setAdminKey] = useState("");
@@ -28,12 +30,7 @@ export default function AdminLoginPage() {
         throw new Error(payload?.error || "Login failed");
       }
 
-      const nextParam =
-        typeof window !== "undefined"
-          ? new URLSearchParams(window.location.search).get("next")
-          : null;
-      const next = nextParam || "/admin/dashboard";
-      router.replace(next);
+      router.replace("/admin/dashboard");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");

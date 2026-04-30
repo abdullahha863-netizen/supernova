@@ -7,6 +7,9 @@ import {
 } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/getClientIp";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const limitKey = `progressive:admin-auth-login:${ip}`;
