@@ -248,16 +248,6 @@ export default function Metrics() {
               >
                 Get Started
               </motion.button>
-              {/* TODO: Remove Admin Dashboard CTA before production launch. */}
-              <Link href="/admin/dashboard">
-                <motion.button
-                  whileHover={{ scale: 1.04, boxShadow: "0 0 22px rgba(201,235,85,0.25)" }}
-                  whileTap={{ scale: 0.96 }}
-                  className="cursor-pointer w-full px-10 py-3 rounded-lg font-bold text-sm uppercase tracking-[0.14em] bg-[#C9EB55]/12 border border-[#C9EB55]/60 text-[#DFF58C] hover:bg-[#C9EB55]/18 transition-all duration-300"
-                >
-                  Admin Dashboard
-                </motion.button>
-              </Link>
             </div>
 
             <Link href="/dashboard">
