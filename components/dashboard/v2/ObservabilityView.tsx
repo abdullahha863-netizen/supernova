@@ -108,16 +108,18 @@ function TrendLine({
   className?: string;
   strokeWidth?: number;
 }) {
-  if (points.length < 2) {
+  const chartPoints = points.filter((point) => Number.isFinite(point));
+
+  if (chartPoints.length < 2) {
     return <div className={className.replace("overflow-visible", "").trim() || "w-full"} />;
   }
 
   const width = 520;
-  const min = Math.min(...points);
-  const max = Math.max(...points);
+  const min = Math.min(...chartPoints);
+  const max = Math.max(...chartPoints);
   const range = max - min || 1;
-  const stepX = width / Math.max(points.length - 1, 1);
-  const d = points
+  const stepX = width / Math.max(chartPoints.length - 1, 1);
+  const d = chartPoints
     .map((value, idx) => {
       const x = idx * stepX;
       const y = height - ((value - min) / range) * height;

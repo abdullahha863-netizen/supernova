@@ -41,16 +41,20 @@ type FraudData = { overallRisk: "clean" | "suspicious" | "high_risk"; flagCount:
 // ─── Mini sparkline chart (no external deps) ────────────────────────────────
 function Sparkline({ points, color = "#C9EB55" }: { points: HashratePoint[]; color?: string }) {
   const svgRef = useRef<SVGSVGElement>(null);
-  if (!points.length) return null;
+  const chartPoints = points
+    .map((point) => ({ ...point, hashrate: Number(point.hashrate) }))
+    .filter((point) => Number.isFinite(point.hashrate));
 
-  const values = points.map((p) => p.hashrate);
+  if (!chartPoints.length) return null;
+
+  const values = chartPoints.map((p) => p.hashrate);
   const min = Math.min(...values);
   const max = Math.max(...values) || 1;
   const W = 100;
   const H = 40;
-  const step = W / (points.length - 1 || 1);
+  const step = W / (chartPoints.length - 1 || 1);
 
-  const pathD = points
+  const pathD = chartPoints
     .map((p, i) => {
       const x = i * step;
       const y = H - ((p.hashrate - min) / (max - min || 1)) * H;

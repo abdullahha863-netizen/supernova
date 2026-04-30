@@ -167,15 +167,19 @@ function Section({ title, description, children }: { title: string; description?
 
 function HashrateTimelineChart({ points, peakDisplay }: { points: HashratePointView[]; peakDisplay: string }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
-  if (!points.length) return <div className="flex h-[240px] items-center justify-center text-sm text-white/40">No chart data for this window</div>;
+  const chartPoints = points
+    .map((point) => ({ ...point, hashrate: Number(point.hashrate) }))
+    .filter((point) => Number.isFinite(point.hashrate));
 
-  const values = points.map((point) => point.hashrate);
+  if (!chartPoints.length) return <div className="flex h-[240px] items-center justify-center text-sm text-white/40">No chart data for this window</div>;
+
+  const values = chartPoints.map((point) => point.hashrate);
   const min = Math.min(...values);
   const max = Math.max(...values) || 1;
   const width = 100;
   const height = 44;
-  const step = width / (points.length - 1 || 1);
-  const path = points
+  const step = width / (chartPoints.length - 1 || 1);
+  const path = chartPoints
     .map((point, index) => {
       const x = index * step;
       const y = height - ((point.hashrate - min) / (max - min || 1)) * (height - 4) - 2;
@@ -210,7 +214,7 @@ function HashrateTimelineChart({ points, peakDisplay }: { points: HashratePointV
         ))}
         <path d={fill} fill="url(#cashout-review-fill)" />
         <path d={path} fill="none" stroke="#C9EB55" strokeWidth="1.5" />
-        {points.map((point, index) => {
+        {chartPoints.map((point, index) => {
           const x = index * step;
           const y = height - ((point.hashrate - min) / (max - min || 1)) * (height - 4) - 2;
           return <circle key={`${point.ts}-${index}`} cx={x} cy={y} r="1.4" fill="#E8FF9D" />;

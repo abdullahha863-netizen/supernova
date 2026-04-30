@@ -207,6 +207,11 @@ function formatPoolFee(value: number | null | undefined) {
   return `${Number(value ?? 0).toFixed(2)}%`;
 }
 
+function toFiniteNumber(value: unknown, fallback = 0) {
+  const nextValue = Number(value);
+  return Number.isFinite(nextValue) ? nextValue : fallback;
+}
+
 function getAlertClassName(severity: AlertItem["severity"]) {
   if (severity === "high") return "border-red-400/30 bg-red-500/10 text-red-200";
   if (severity === "medium") return "border-orange-400/30 bg-orange-500/10 text-orange-200";
@@ -527,12 +532,19 @@ export default function DashboardPage() {
         throw new Error(data?.error || "Failed to load hashrate history.");
       }
 
-      const points = Array.isArray(data.points) ? data.points : [];
+      const points = Array.isArray(data.points)
+        ? data.points
+            .map((point) => ({
+              ts: String(point.ts ?? ""),
+              hashrate: toFiniteNumber(point.hashrate),
+            }))
+            .filter((point) => point.ts && Number.isFinite(point.hashrate))
+        : [];
       setHashrateHistory(points);
       setHashrateStats({
-        current: Number(data.stats?.current ?? points[points.length - 1]?.hashrate ?? 0),
-        average: Number(data.stats?.average ?? 0),
-        peak: Number(data.stats?.peak ?? 0),
+        current: toFiniteNumber(data.stats?.current ?? points[points.length - 1]?.hashrate),
+        average: toFiniteNumber(data.stats?.average),
+        peak: toFiniteNumber(data.stats?.peak),
         lastUpdated: data.stats?.lastUpdated ?? points[points.length - 1]?.ts ?? null,
       });
     } catch (error) {
