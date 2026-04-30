@@ -1,24 +1,37 @@
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
-import { revokeSession } from "@/lib/auth";
-import { clearSessionCookie } from "@/lib/jwt";
-import { rateLimit } from "@/lib/rateLimit";
-import { getClientIp } from "@/lib/getClientIp";
-import { ADMIN_COOKIE_NAME } from "@/lib/adminAuth";
 
 export async function POST(req: Request) {
-  const rl = rateLimit(`${getClientIp(req)}:auth-logout`, { windowMs: 60_000, max: 30 });
-  if (!rl.ok) return NextResponse.json({ error: "Rate limit" }, { status: 429 });
+  try {
+    const [{ rateLimit }, { getClientIp }] = await Promise.all([
+      import("@/lib/rateLimit"),
+      import("@/lib/getClientIp"),
+    ]);
 
-  // read cookie
-  const cookie = req.headers.get("cookie") || "";
-  const match = cookie.match(/sn_auth=([^;]+)/);
-  const token = match?.[1];
-  if (token) await revokeSession(token);
+    const rl = rateLimit(`${getClientIp(req)}:auth-logout`, { windowMs: 60_000, max: 30 });
+    if (!rl.ok) return NextResponse.json({ error: "Rate limit" }, { status: 429 });
+
+    // read cookie
+    const cookie = req.headers.get("cookie") || "";
+    const match = cookie.match(/sn_auth=([^;]+)/);
+    const token = match?.[1];
+    if (token) {
+      try {
+        const { revokeSession } = await import("@/lib/auth");
+        await revokeSession(token);
+      } catch (error) {
+        console.error("[auth][logout][revokeSession]", error);
+      }
+    }
+  } catch (error) {
+    console.error("[auth][logout]", error);
+  }
 
   const res = NextResponse.json({ ok: true });
-  res.headers.append("Set-Cookie", clearSessionCookie());
   res.cookies.set({
-    name: ADMIN_COOKIE_NAME,
+    name: "sn_auth",
     value: "",
     httpOnly: true,
     sameSite: "lax",

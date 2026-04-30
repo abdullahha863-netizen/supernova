@@ -1,13 +1,20 @@
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { hashPassword, createSession } from "@/lib/auth";
-import { sessionCookie } from "@/lib/jwt";
-import { rateLimit } from "@/lib/rateLimit";
-import { recordReferralAudit } from "@/lib/referralEngine";
-import { getClientIp } from "@/lib/getClientIp";
 
 export async function POST(req: Request) {
   try {
+    const [{ prisma }, { hashPassword, createSession }, { sessionCookie }, { rateLimit }, { recordReferralAudit }, { getClientIp }] =
+      await Promise.all([
+        import("@/lib/prisma"),
+        import("@/lib/auth"),
+        import("@/lib/jwt"),
+        import("@/lib/rateLimit"),
+        import("@/lib/referralEngine"),
+        import("@/lib/getClientIp"),
+      ]);
+
     const clientIp = getClientIp(req);
     const userAgent = req.headers.get("user-agent") || "";
     const rl = rateLimit(getClientIp(req), {

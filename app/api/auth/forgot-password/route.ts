@@ -1,35 +1,47 @@
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { randomBytes } from "crypto";
-import { sendEmail } from "@/lib/email";
-import { rateLimit } from "@/lib/rateLimit";
-import { getClientIp } from "@/lib/getClientIp";
-import { buildAppUrl } from "@/lib/appUrl";
-import { buildResetPasswordEmail } from "@/lib/emailTemplates";
 
 export async function POST(req: Request) {
-  const rl = rateLimit(getClientIp(req), { windowMs: 10 * 60_000, max: 5 });
-  if (!rl.ok) return NextResponse.json({ error: "Rate limit" }, { status: 429 });
+  try {
+    const [{ prisma }, { randomBytes }, { sendEmail }, { rateLimit }, { getClientIp }, { buildAppUrl }, { buildResetPasswordEmail }] =
+      await Promise.all([
+        import("@/lib/prisma"),
+        import("crypto"),
+        import("@/lib/email"),
+        import("@/lib/rateLimit"),
+        import("@/lib/getClientIp"),
+        import("@/lib/appUrl"),
+        import("@/lib/emailTemplates"),
+      ]);
 
-  const { email } = await req.json();
-  if (!email) return NextResponse.json({ error: "Missing email" }, { status: 400 });
-  const normalizedEmail = String(email).trim().toLowerCase();
-  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
-  if (!emailOk) return NextResponse.json({ ok: true });
+    const rl = rateLimit(getClientIp(req), { windowMs: 10 * 60_000, max: 5 });
+    if (!rl.ok) return NextResponse.json({ error: "Rate limit" }, { status: 429 });
 
-  const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-  if (!user) return NextResponse.json({ ok: true });
+    const { email } = await req.json();
+    if (!email) return NextResponse.json({ error: "Missing email" }, { status: 400 });
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+    if (!emailOk) return NextResponse.json({ ok: true });
 
-  const token = randomBytes(24).toString("hex");
-  const expires = new Date(Date.now() + 1000 * 60 * 60);
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (!user) return NextResponse.json({ ok: true });
 
-  await prisma.verificationToken.deleteMany({ where: { userId: user.id, type: "password_reset" } });
+    const token = randomBytes(24).toString("hex");
+    const expires = new Date(Date.now() + 1000 * 60 * 60);
 
-  await prisma.verificationToken.create({ data: { token, userId: user.id, type: "password_reset", expiresAt: expires } });
+    await prisma.verificationToken.deleteMany({ where: { userId: user.id, type: "password_reset" } });
 
-  const link = buildAppUrl(req, "/reset-password", { token });
-  const emailContent = buildResetPasswordEmail(link);
-  await sendEmail(user.email, "Reset your Supernova password", emailContent.html, emailContent.text);
+    await prisma.verificationToken.create({ data: { token, userId: user.id, type: "password_reset", expiresAt: expires } });
 
-  return NextResponse.json({ ok: true });
+    const link = buildAppUrl(req, "/reset-password", { token });
+    const emailContent = buildResetPasswordEmail(link);
+    await sendEmail(user.email, "Reset your Supernova password", emailContent.html, emailContent.text);
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("[auth][forgot-password]", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
