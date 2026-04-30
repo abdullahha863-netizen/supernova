@@ -59,7 +59,7 @@ async function hasValidUserSession(sessionToken: string | undefined) {
   }
 }
 
-async function getNavbarRole(): Promise<AuthRole> {
+export async function getNavbarRole(): Promise<AuthRole> {
   noStore();
 
   const cookieStore = await cookies();

@@ -107,7 +107,12 @@ function getPricingFeatureTitle(feature: string) {
   return undefined;
 }
 
-export default function Metrics() {
+type MetricsProps = {
+  showDashboard?: boolean;
+  showAdminDashboard?: boolean;
+};
+
+export default function Metrics({ showDashboard = false, showAdminDashboard = false }: MetricsProps) {
   const isClient = useSyncExternalStore(
     () => () => undefined,
     () => true,
@@ -248,17 +253,30 @@ export default function Metrics() {
               >
                 Get Started
               </motion.button>
+              {showAdminDashboard ? (
+                <Link href="/admin/dashboard">
+                  <motion.button
+                    whileHover={{ scale: 1.04, boxShadow: "0 0 22px rgba(201,235,85,0.25)" }}
+                    whileTap={{ scale: 0.96 }}
+                    className="cursor-pointer w-full px-10 py-3 rounded-lg font-bold text-sm uppercase tracking-[0.14em] bg-[#C9EB55]/12 border border-[#C9EB55]/60 text-[#DFF58C] hover:bg-[#C9EB55]/18 transition-all duration-300"
+                  >
+                    Admin Dashboard
+                  </motion.button>
+                </Link>
+              ) : null}
             </div>
 
-            <Link href="/dashboard">
-              <motion.button
-                whileHover={{ scale: 1.08, boxShadow: "0 0 30px rgba(201,235,85,0.3)" }}
-                whileTap={{ scale: 0.95 }}
-                className="cursor-pointer px-10 py-4 rounded-lg font-bold text-lg bg-black/50 border-2 border-[#C9EB55]/70 text-white hover:bg-black/30 transition-all duration-300"
-              >
-                Dashboard
-              </motion.button>
-            </Link>
+            {showDashboard ? (
+              <Link href="/dashboard">
+                <motion.button
+                  whileHover={{ scale: 1.08, boxShadow: "0 0 30px rgba(201,235,85,0.3)" }}
+                  whileTap={{ scale: 0.95 }}
+                  className="cursor-pointer px-10 py-4 rounded-lg font-bold text-lg bg-black/50 border-2 border-[#C9EB55]/70 text-white hover:bg-black/30 transition-all duration-300"
+                >
+                  Dashboard
+                </motion.button>
+              </Link>
+            ) : null}
           </motion.div>
         </div>
       </section>
