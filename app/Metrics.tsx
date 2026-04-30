@@ -36,6 +36,7 @@ function AnimatedNeonLines() {
   return (
     <svg
       className="absolute inset-0 w-full h-full opacity-30"
+      viewBox="0 0 100 100"
       preserveAspectRatio="none"
       style={{ pointerEvents: "none" }}
     >
@@ -54,7 +55,7 @@ function AnimatedNeonLines() {
         </filter>
       </defs>
       <motion.path
-        d="M 10% 20% Q 50% 10%, 90% 30%"
+        d="M 10 20 Q 50 10, 90 30"
         stroke="url(#neonGreen)"
         strokeWidth="2"
         fill="none"
@@ -64,7 +65,7 @@ function AnimatedNeonLines() {
         transition={{ duration: 4, repeat: Infinity, repeatType: "loop" }}
       />
       <motion.path
-        d="M 5% 60% L 95% 70%"
+        d="M 5 60 L 95 70"
         stroke="url(#neonGreen)"
         strokeWidth="1.5"
         fill="none"
@@ -74,7 +75,7 @@ function AnimatedNeonLines() {
         transition={{ duration: 5, repeat: Infinity, repeatType: "loop", delay: 0.5 }}
       />
       <motion.path
-        d="M 30% 40% L 70% 50% Q 80% 60%, 90% 55%"
+        d="M 30 40 L 70 50 Q 80 60, 90 55"
         stroke="url(#neonGreen)"
         strokeWidth="1"
         fill="none"

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import HeaderVisibility from "@/components/HeaderVisibility";
 import Navbar from "@/components/Navbar";
 import "./globals.css";
 
@@ -27,9 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-[#0A0A0A] text-white antialiased`}>
-        <HeaderVisibility>
-          <Navbar />
-        </HeaderVisibility>
+        <Navbar />
         <main className="min-h-screen">
           {children}
         </main>
