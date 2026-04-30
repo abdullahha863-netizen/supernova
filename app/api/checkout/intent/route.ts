@@ -1,33 +1,19 @@
-import { randomUUID, createHmac, timingSafeEqual } from "crypto";
-import { NextResponse } from "next/server";
-import { getUserIdFromRequestSession } from "@/lib/auth";
-import {
-  createNowPaymentsInvoice,
-  getCheckoutIntentById,
-  type CheckoutProvider,
-  getStripeClient,
-  isNowPaymentsCheckoutEnabled,
-  mapStripeIntentStatus,
-  syncCheckoutIntentStatus,
-} from "@/lib/checkoutIntents";
-import { buildAppUrl } from "@/lib/appUrl";
-import { CHECKOUT_PLANS, normalizeTier, type TierKey } from "@/lib/checkoutPlans";
-import { getClientIp } from "@/lib/getClientIp";
-import { prisma } from "@/lib/prisma";
-import { rateLimit } from "@/lib/rateLimit";
-import {
-  normalizeShippingProfile,
-  upsertShippingProfile,
-  validateRequiredShippingProfile,
-} from "@/lib/userProfiles";
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-function signIntent(intentId: string, tier: TierKey, amountUsd: number, expiresAtIso: string) {
+import { NextResponse } from "next/server";
+
+type CheckoutProvider = "stripe" | "nowpayments" | "mock";
+
+async function signIntent(intentId: string, tier: string, amountUsd: number, expiresAtIso: string) {
+  const { createHmac } = await import("crypto");
   const key = process.env.CHECKOUT_INTENT_SIGNING_KEY || process.env.JWT_SECRET || "dev-checkout-intent-key";
   const payload = `${intentId}:${tier}:${amountUsd}:${expiresAtIso}`;
   return createHmac("sha256", key).update(payload).digest("hex");
 }
 
-function secureTokenEquals(a: string, b: string) {
+async function secureTokenEquals(a: string, b: string) {
+  const { timingSafeEqual } = await import("crypto");
   const aBuf = Buffer.from(a, "utf8");
   const bBuf = Buffer.from(b, "utf8");
   if (aBuf.length !== bBuf.length) return false;
@@ -50,6 +36,35 @@ function normalizeRequestedProvider(raw: unknown): CheckoutProvider | null {
 
 export async function POST(req: Request) {
   try {
+    const [
+      { randomUUID },
+      { getUserIdFromRequestSession },
+      checkoutIntents,
+      { buildAppUrl },
+      { CHECKOUT_PLANS, normalizeTier },
+      { getClientIp },
+      { prisma },
+      { rateLimit },
+      userProfiles,
+    ] = await Promise.all([
+      import("crypto"),
+      import("@/lib/auth"),
+      import("@/lib/checkoutIntents"),
+      import("@/lib/appUrl"),
+      import("@/lib/checkoutPlans"),
+      import("@/lib/getClientIp"),
+      import("@/lib/prisma"),
+      import("@/lib/rateLimit"),
+      import("@/lib/userProfiles"),
+    ]);
+    const {
+      createNowPaymentsInvoice,
+      getStripeClient,
+      isNowPaymentsCheckoutEnabled,
+      mapStripeIntentStatus,
+    } = checkoutIntents;
+    const { normalizeShippingProfile, upsertShippingProfile, validateRequiredShippingProfile } = userProfiles;
+
     const ip = getClientIp(req);
     const userAgent = req.headers.get("user-agent") || "unknown";
 
@@ -96,7 +111,7 @@ export async function POST(req: Request) {
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
     const stripe = getStripeClient();
     const publishableKey = String(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "").trim();
-    const signedToken = signIntent(intentId, tier, plan.firstPaymentUsd, expiresAt.toISOString());
+    const signedToken = await signIntent(intentId, tier, plan.firstPaymentUsd, expiresAt.toISOString());
 
     let paymentMode: CheckoutProvider = "mock";
     let providerIntentId: string | null = null;
@@ -219,6 +234,19 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
+    const [
+      checkoutIntents,
+      { CHECKOUT_PLANS, normalizeTier },
+      { getClientIp },
+      { rateLimit },
+    ] = await Promise.all([
+      import("@/lib/checkoutIntents"),
+      import("@/lib/checkoutPlans"),
+      import("@/lib/getClientIp"),
+      import("@/lib/rateLimit"),
+    ]);
+    const { getCheckoutIntentById, syncCheckoutIntentStatus } = checkoutIntents;
+
     const ip = getClientIp(req);
     const rl = rateLimit(`${ip}:checkout-intent-get`, {
       windowMs: 60_000,
@@ -248,8 +276,8 @@ export async function GET(req: Request) {
       return NextResponse.json({ ok: false, error: "Invalid intent payload" }, { status: 400 });
     }
 
-    const expected = signIntent(row.id, tier, row.amount_usd, row.expires_at.toISOString());
-    if (!secureTokenEquals(token, expected)) {
+    const expected = await signIntent(row.id, tier, row.amount_usd, row.expires_at.toISOString());
+    if (!(await secureTokenEquals(token, expected))) {
       return NextResponse.json({ ok: false, error: "Invalid intent token" }, { status: 403 });
     }
 
