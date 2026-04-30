@@ -8,7 +8,11 @@ export async function POST(req: Request) {
   const match = cookie.match(/sn_auth=([^;]+)/);
   const token = match?.[1];
   if (token) {
-    await revokeSession(token);
+    try {
+      await revokeSession(token);
+    } catch (e) {
+      console.error("revokeSession error:", e);
+    }
   }
 
   const response = NextResponse.json({ ok: true });
