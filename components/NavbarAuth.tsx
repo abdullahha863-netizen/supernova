@@ -35,16 +35,17 @@ function navLinkClassName() {
   return "relative text-[#C6E65A] font-semibold text-[16px] px-4 py-2 rounded-3xl transition-all duration-300 hover:-translate-y-[2px]";
 }
 
-async function hasValidUserSession(sessionToken: string | undefined) {
-  if (!sessionToken) return false;
+async function hasValidUserSession(sessionToken: string | null | undefined) {
+  const token = typeof sessionToken === "string" ? sessionToken.trim() : "";
+  if (!token) return false;
 
-  const payload = verifySession(sessionToken);
+  const payload = verifySession(token);
   const subject = getSessionSubject(payload);
   if (!subject) return false;
 
   try {
     const session = await prisma.session.findUnique({
-      where: { token: sessionToken },
+      where: { token },
       select: { userId: true, expiresAt: true },
     });
 
@@ -63,13 +64,15 @@ export async function getNavbarRole(): Promise<AuthRole> {
   noStore();
 
   const cookieStore = await cookies();
-  const adminKey = cookieStore.get(ADMIN_COOKIE_NAME)?.value ?? null;
-  const isAdmin = !!adminKey && isValidAdminKey(adminKey);
+  const adminCookie = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
+  const adminKey = typeof adminCookie === "string" ? adminCookie.trim() : "";
+  if (adminKey && isValidAdminKey(adminKey)) {
+    return "admin";
+  }
 
   const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-
-  if (isAdmin) return "admin";
   if (await hasValidUserSession(sessionToken)) return "user";
+
   return "guest";
 }
 
