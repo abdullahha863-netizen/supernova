@@ -1,0 +1,458 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                       String                    @id @default(cuid())
+  name                     String
+  email                    String                    @unique
+  password                 String
+  emailVerified            DateTime?
+  referralCode             String?                   @unique @default(cuid())
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  twoFactorEnabled         Boolean                   @default(false)
+  twoFactor                TwoFactor?
+  sessions                 Session[]
+  verificationTokens       VerificationToken[]
+  referralsGiven           Referral[]                @relation("ReferrerUser")
+  referralsReceived        Referral[]                @relation("ReferredUser")
+  miners                   Miner[]
+  shares                   Share[]
+  alerts                   Alert[]
+  blockRewardDistributions BlockRewardDistribution[]
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+model Alert {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  type      String
+  message   String
+  severity  String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, type, createdAt])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  token     String   @unique
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model TwoFactor {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @unique
+  type      String
+  secret    String?
+  enabled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model VerificationToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  type      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Referral {
+  id             String   @id @default(cuid())
+  referer        User     @relation("ReferrerUser", fields: [referrerId], references: [id], onDelete: Cascade)
+  referrerId     String
+  referred       User     @relation("ReferredUser", fields: [referredUserId], references: [id], onDelete: Cascade)
+  referredUserId String
+  status         String   @default("pending")
+  rewardStatus   String   @default("pending")
+  rewardType     String?
+  rewardAmount   Float?   @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Ticket {
+  id            String   @id @default(cuid())
+  title         String
+  email         String
+  priority      String
+  cardLast4     String?
+  description   String
+  screenshotUrl String?
+  createdAt     DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String
+  title     String
+  message   String
+  severity  String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  link      String?
+}
+
+// ==================== MINING MODELS ====================
+
+model Miner {
+  id             String   @id @default(cuid())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  minerName      String // e.g. "GPU-1", "ASIC-A"
+  minerAddress   String // e.g. IP or unique identifier
+  poolWorkerName String // stratum username
+  difficulty     Float    @default(1)
+  lastSeen       DateTime @default(now())
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  shares         Share[]
+
+  @@unique([userId, poolWorkerName])
+  @@index([userId, isActive])
+  @@index([userId, lastSeen])
+  @@index([lastSeen])
+}
+
+model MinerWorker {
+  id          Int      @id @default(autoincrement())
+  userId      String   @map("user_id")
+  name        String
+  description String?  @default("")
+  hashrate    Decimal  @default(0) @db.Decimal
+  status      String   @default("offline")
+  lastShare   DateTime @default(now()) @map("last_share") @db.Timestamptz(6)
+  rejectRate  Decimal  @default(0) @map("reject_rate") @db.Decimal
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([userId, name])
+  @@map("miner_workers")
+}
+
+model MinerProfile {
+  userId               String    @id @map("user_id")
+  plan                 String    @default("Starter")
+  payoutAddress        String    @default("") @map("payout_address")
+  minPayout            Decimal   @default(30) @map("min_payout") @db.Decimal
+  payoutSchedule       String    @default("daily") @map("payout_schedule")
+  pendingBalance       Decimal   @default(0) @map("pending_balance") @db.Decimal
+  reservedBalance      Decimal   @default(0) @map("reserved_balance") @db.Decimal
+  totalHashrate        Decimal   @default(0) @map("total_hashrate") @db.Decimal
+  rewardFlow           Decimal   @default(0) @map("reward_flow") @db.Decimal
+  totalShares          Int       @default(0) @map("total_shares")
+  acceptedShares       Int       @default(0) @map("accepted_shares")
+  rejectedShares       Int       @default(0) @map("rejected_shares")
+  rejectRate           Decimal   @default(0) @map("reject_rate") @db.Decimal
+  sharesPerMinute      Decimal   @default(0) @map("shares_per_minute") @db.Decimal
+  shareWindowStartedAt DateTime? @map("share_window_started_at") @db.Timestamptz(6)
+  shareWindowCount     Int       @default(0) @map("share_window_count")
+  isFlagged            Boolean   @default(false) @map("is_flagged")
+  flagReason           String?   @map("flag_reason")
+  flaggedAt            DateTime? @map("flagged_at") @db.Timestamptz(6)
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("miner_profiles")
+}
+
+model MinerPayout {
+  id             Int                        @id @default(autoincrement())
+  userId         String                     @map("user_id")
+  payoutDate     DateTime                   @default(now()) @map("payout_date") @db.Date
+  amount         Decimal                    @default(0) @db.Decimal
+  status         String                     @default("pending")
+  tx             String                     @default("Processing")
+  txHash         String?                    @map("tx_hash")
+  idempotencyKey String?                    @unique @map("idempotency_key")
+  paidAt         DateTime?                  @map("paid_at") @db.Timestamptz(6)
+  createdAt      DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  statusHistory  MinerPayoutStatusHistory[]
+
+  @@index([userId, status], map: "idx_miner_payouts_user_status")
+  @@map("miner_payouts")
+}
+
+model MinerPayoutStatusHistory {
+  id         Int         @id @default(autoincrement())
+  payoutId   Int         @map("payout_id")
+  payout     MinerPayout @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  fromStatus String?     @map("from_status")
+  toStatus   String      @map("to_status")
+  note       String      @default("")
+  txHash     String?     @map("tx_hash")
+  createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([payoutId, createdAt], map: "idx_miner_payout_status_history_payout_created")
+  @@map("miner_payout_status_history")
+}
+
+model MinerHashrateHistory {
+  id            BigInt   @id @default(autoincrement())
+  userId        String   @map("user_id")
+  hashrate      Decimal  @default(0) @db.Decimal
+  workerCount   Int      @default(0) @map("worker_count")
+  onlineWorkers Int      @default(0) @map("online_workers")
+  recordedAt    DateTime @default(now()) @map("recorded_at") @db.Timestamptz(6)
+
+  @@index([userId, recordedAt], map: "miner_hashrate_history_user_recorded_idx")
+  @@index([recordedAt], map: "miner_hashrate_history_recorded_idx")
+  @@map("miner_hashrate_history")
+}
+
+model CheckoutIntent {
+  id                 String    @id
+  userId             String?   @map("user_id")
+  tier               String
+  amountUsd          Decimal   @map("amount_usd") @db.Decimal
+  currency           String    @default("USD")
+  status             String    @default("pending")
+  provider           String    @default("mock")
+  providerIntentId   String?   @map("provider_intent_id")
+  ip                 String?
+  userAgent          String?   @map("user_agent")
+  shippingFullName   String    @default("") @map("shipping_full_name")
+  shippingPhone      String    @default("") @map("shipping_phone")
+  shippingLine1      String    @default("") @map("shipping_line1")
+  shippingLine2      String    @default("") @map("shipping_line2")
+  shippingCity       String    @default("") @map("shipping_city")
+  shippingState      String    @default("") @map("shipping_state")
+  shippingPostalCode String    @default("") @map("shipping_postal_code")
+  shippingCountry    String    @default("") @map("shipping_country")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt          DateTime  @map("expires_at") @db.Timestamptz(6)
+  fulfilledAt        DateTime? @map("fulfilled_at") @db.Timestamptz(6)
+
+  @@index([userId], map: "idx_checkout_intents_user_id")
+  @@index([status], map: "idx_checkout_intents_status")
+  @@index([expiresAt], map: "idx_checkout_intents_expires_at")
+  @@index([providerIntentId], map: "idx_checkout_intents_provider_intent_id")
+  @@map("checkout_intents")
+}
+
+model MemberCardFulfillment {
+  id                 Int          @id @default(autoincrement())
+  checkoutIntentId   String       @unique @map("checkout_intent_id")
+  userId             String       @map("user_id")
+  tier               String
+  cardLabel          String       @map("card_label")
+  fulfillmentStatus  String       @default("queued") @map("fulfillment_status")
+  shippingFullName   String       @default("") @map("shipping_full_name")
+  shippingEmail      String       @default("") @map("shipping_email")
+  shippingPhone      String       @default("") @map("shipping_phone")
+  shippingLine1      String       @default("") @map("shipping_line1")
+  shippingLine2      String       @default("") @map("shipping_line2")
+  shippingCity       String       @default("") @map("shipping_city")
+  shippingState      String       @default("") @map("shipping_state")
+  shippingPostalCode String       @default("") @map("shipping_postal_code")
+  shippingCountry    String       @default("") @map("shipping_country")
+  carrier            String       @default("")
+  trackingNumber     String       @default("") @map("tracking_number")
+  trackingUrl        String       @default("") @map("tracking_url")
+  notes              String       @default("")
+  estimatedDelivery  DateTime?    @map("estimated_delivery") @db.Timestamptz(6)
+  shippedAt          DateTime?    @map("shipped_at") @db.Timestamptz(6)
+  deliveredAt        DateTime?    @map("delivered_at") @db.Timestamptz(6)
+  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  memberCards        MemberCard[]
+
+  @@index([userId], map: "idx_member_card_fulfillments_user_id")
+  @@index([fulfillmentStatus], map: "idx_member_card_fulfillments_status")
+  @@map("member_card_fulfillments")
+}
+
+enum MemberCardTier {
+  Silver
+  Hash_Pro
+  Titan_Elite
+}
+
+enum MemberCardStatus {
+  issued
+  shipped
+  activated
+  revoked
+}
+
+model MemberCard {
+  id                      String                 @id @default(cuid())
+  metalCardId             String                 @unique
+  tier                    MemberCardTier
+  userId                  String?
+  assignedEmail           String
+  fulfillmentId           Int?
+  fulfillment             MemberCardFulfillment? @relation(fields: [fulfillmentId], references: [id])
+  verificationCodeHash    String
+  status                  MemberCardStatus       @default(issued)
+  activatedAt             DateTime?
+  revokedAt               DateTime?
+  failedVerificationCount Int                    @default(0)
+  verificationLockedUntil DateTime?
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+
+  @@index([assignedEmail])
+  @@index([userId])
+  @@index([tier])
+  @@index([status])
+  @@index([assignedEmail, tier])
+  @@index([fulfillmentId])
+}
+
+model UserProfile {
+  userId             String   @id @map("user_id")
+  avatarUrl          String   @default("") @map("avatar_url")
+  shippingFullName   String   @default("") @map("shipping_full_name")
+  shippingPhone      String   @default("") @map("shipping_phone")
+  shippingLine1      String   @default("") @map("shipping_line1")
+  shippingLine2      String   @default("") @map("shipping_line2")
+  shippingCity       String   @default("") @map("shipping_city")
+  shippingState      String   @default("") @map("shipping_state")
+  shippingPostalCode String   @default("") @map("shipping_postal_code")
+  shippingCountry    String   @default("") @map("shipping_country")
+  updatedAt          DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("user_profiles")
+}
+
+model PendingEmailChange {
+  token     String   @id
+  userId    String   @map("user_id")
+  newEmail  String   @map("new_email")
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("pending_email_changes")
+}
+
+model ReferralAudit {
+  id             Int      @id @default(autoincrement())
+  referrerId     String   @map("referrer_id")
+  referredUserId String   @unique @map("referred_user_id")
+  ipHash         String?  @map("ip_hash")
+  uaHash         String?  @map("ua_hash")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([referrerId], map: "idx_referral_audit_referrer")
+  @@index([ipHash], map: "idx_referral_audit_ip_hash")
+  @@index([uaHash], map: "idx_referral_audit_ua_hash")
+  @@map("referral_audit")
+}
+
+model EmergencySecurity {
+  userId                 String    @id @map("user_id")
+  pinHash                String?   @map("pin_hash")
+  failedAttempts         Int       @default(0) @map("failed_attempts")
+  lockoutUntil           DateTime? @map("lockout_until") @db.Timestamptz(6)
+  emergencyLocked        Boolean   @default(false) @map("emergency_locked")
+  pinResetFailedAttempts Int       @default(0) @map("pin_reset_failed_attempts")
+  pinResetLockoutUntil   DateTime? @map("pin_reset_lockout_until") @db.Timestamptz(6)
+  pinResetRecoveryUntil  DateTime? @map("pin_reset_recovery_until") @db.Timestamptz(6)
+  lockedAt               DateTime? @map("locked_at") @db.Timestamptz(6)
+  updatedAt              DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("emergency_security")
+}
+
+model SecurityEvent {
+  id        Int      @id @default(autoincrement())
+  userId    String   @map("user_id")
+  eventType String   @map("event_type")
+  success   Boolean  @default(false)
+  reason    String   @default("")
+  ip        String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("security_events")
+}
+
+model Share {
+  id         String   @id @default(cuid())
+  miner      Miner    @relation(fields: [minerId], references: [id], onDelete: Cascade)
+  minerId    String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  nonce      String // share nonce
+  difficulty Float // share difficulty
+  accepted   Boolean  @default(true)
+  reward     Float?   @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([minerId, createdAt])
+  @@index([createdAt])
+  @@index([accepted])
+}
+
+model PoolBlock {
+  id            String                    @id @default(cuid())
+  blockHash     String                    @unique
+  height        Int
+  grossReward   Decimal                   @db.Decimal
+  status        String                    @default("pending")
+  foundAt       DateTime
+  distributedAt DateTime?
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+  distributions BlockRewardDistribution[]
+
+  @@index([status, foundAt])
+  @@index([height])
+}
+
+model BlockRewardDistribution {
+  id                String    @id @default(cuid())
+  poolBlock         PoolBlock @relation(fields: [poolBlockId], references: [id], onDelete: Cascade)
+  poolBlockId       String
+  blockHash         String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            String
+  userShareWeight   Decimal   @db.Decimal
+  totalWindowWeight Decimal   @db.Decimal
+  grossReward       Decimal   @db.Decimal
+  netReward         Decimal   @db.Decimal
+  poolFeeAmount     Decimal   @db.Decimal
+  createdAt         DateTime  @default(now())
+
+  @@unique([poolBlockId, userId])
+  @@index([blockHash])
+  @@index([userId, createdAt])
+}
+
+model MiningPool {
+  id            String   @id @default(cuid())
+  name          String   @unique // e.g. "Kaspa Pool 1"
+  host          String // stratum server host
+  port          Int // stratum server port
+  difficulty    Float    @default(1)
+  isActive      Boolean  @default(true)
+  maxMiners     Int      @default(10000)
+  currentMiners Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([isActive])
+}

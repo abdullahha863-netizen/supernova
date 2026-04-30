@@ -1,0 +1,36 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run Next dev",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"dev"
+			],
+			"isBackground": true,
+			"group": "build"
+		},
+		{
+			"label": "Run mining stats aggregator",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"mining:worker:stats"
+			],
+			"isBackground": true,
+			"group": "build"
+		},
+		{
+			"label": "Run dev with mining stats",
+			"dependsOn": [
+				"Run Next dev",
+				"Run mining stats aggregator"
+			],
+			"dependsOrder": "parallel",
+			"group": "build"
+		}
+	]
+}

@@ -1,0 +1,14 @@
+ALTER TABLE "miner_profiles"
+  ADD COLUMN IF NOT EXISTS "total_shares" INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS "accepted_shares" INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS "rejected_shares" INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS "reject_rate" DECIMAL NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS "shares_per_minute" DECIMAL NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS "share_window_started_at" TIMESTAMPTZ(6),
+  ADD COLUMN IF NOT EXISTS "share_window_count" INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS "is_flagged" BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS "flag_reason" TEXT,
+  ADD COLUMN IF NOT EXISTS "flagged_at" TIMESTAMPTZ(6);
+
+CREATE INDEX IF NOT EXISTS "miner_profiles_flagged_idx"
+  ON "miner_profiles" ("is_flagged", "flagged_at");

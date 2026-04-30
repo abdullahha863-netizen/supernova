@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+:root {
+  --background: #030305;
+  --foreground: #e6e6e6;
+  --brand: #C9EB55;
+  --muted: rgba(255,255,255,0.12);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #030305;
+    --foreground: #e6e6e6;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+/* Accessible focus ring and subtle brand glow */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(201,235,85,0.10), 0 0 18px rgba(201,235,85,0.14);
+  border-color: rgba(201,235,85,0.9);
+}
+
+.brand-glow {
+  box-shadow: 0 0 18px rgba(201,235,85,0.18);
+}
+
+.nova-glow {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(201, 235, 85, 0.12);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 4px 24px -1px rgba(0,0,0,0.2), 0 0 16px rgba(201,235,85,0.08);
+}
