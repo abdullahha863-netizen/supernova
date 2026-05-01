@@ -3,7 +3,6 @@
 import { Suspense, useState, useEffect, useMemo, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import AuthCard from "@/components/auth/AuthCard";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import FormFooter from "@/components/auth/FormFooter";
@@ -155,7 +154,12 @@ function LoginForm() {
       </div>
 
       <div className="relative z-10 min-h-screen flex items-center justify-center px-6">
-        <AuthCard title="SUPERNOVA" subtitle="Secure Member Access">
+        <div className="nova-glow rounded-2xl p-7 md:p-8 w-full max-w-lg relative overflow-hidden">
+          <div className="space-y-1 mb-6">
+            <h1 className="text-3xl font-bold text-[#C9EB55]">SUPERNOVA</h1>
+            <p className="text-white/70 text-sm">Secure Member Access</p>
+          </div>
+
           <form className="flex flex-col gap-5" onSubmit={onSubmit}>
             <Input
               id="email"
@@ -213,7 +217,7 @@ function LoginForm() {
               </span>
             </FormFooter>
           </form>
-        </AuthCard>
+        </div>
       </div>
 
       <SupernovaFooter className="relative z-10 pb-10" />
