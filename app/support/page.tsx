@@ -206,23 +206,6 @@ export default function SupportPage() {
             </div>
           </motion.div>
         </section>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-center"
-        >
-          <p className="text-lg text-white/70">
-            <span className="font-semibold text-[#C9EB55]">Secure support email:</span>{" "}
-            <a
-              href="mailto:support@snovapool.io"
-              className="hover:text-white transition-colors border-b border-[#C9EB55]/30 hover:border-[#C9EB55] pb-0.5"
-            >
-              support@snovapool.io
-            </a>
-          </p>
-        </motion.div>
       </main>
     </div>
   );
