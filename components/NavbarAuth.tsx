@@ -2,9 +2,7 @@ import Link from "next/link";
 import { unstable_noStore as noStore } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getSessionSubject, verifySession } from "@/lib/jwt";
-import { revokeSession } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { getUserIdFromSessionToken, revokeSession } from "@/lib/auth";
 import { ADMIN_COOKIE_NAME, isValidAdminKey } from "@/lib/adminAuth";
 
 const SESSION_COOKIE_NAME = "sn_auth";
@@ -36,26 +34,12 @@ function navLinkClassName() {
 }
 
 async function hasValidUserSession(sessionToken: string | null | undefined) {
-  const token = typeof sessionToken === "string" ? sessionToken.trim() : "";
-  if (!token) return false;
-
-  const payload = verifySession(token);
-  const subject = getSessionSubject(payload);
-  if (!subject) return false;
-
   try {
-    const session = await prisma.session.findUnique({
-      where: { token },
-      select: { userId: true, expiresAt: true },
-    });
-
-    return Boolean(
-      session &&
-      session.expiresAt >= new Date() &&
-      session.userId === subject
-    );
+    return Boolean(await getUserIdFromSessionToken(sessionToken));
   } catch (error) {
-    console.error("[NavbarAuth] Failed to validate user session", error);
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[NavbarAuth] Falling back to guest navigation after session validation failed.", error);
+    }
     return false;
   }
 }
