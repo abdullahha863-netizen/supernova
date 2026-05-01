@@ -924,60 +924,12 @@ export default function Metrics({ showDashboard = false, showAdminDashboard = fa
             </div>
           </section>
 
-          {/* ==================== FOOTER ==================== */}
-          <footer className="w-full bg-[#040506] border-t border-white/5 pt-20 pb-10">
-            <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-              <div className="grid w-full grid-cols-1 justify-between gap-y-10 gap-x-8 sm:grid-cols-2 lg:grid-cols-[repeat(4,1fr)] lg:gap-x-12 xl:gap-x-16 mb-20 items-start">
-                <div className="flex flex-col gap-6 lg:justify-self-start">
-                  <h3 className="text-sm font-semibold text-white uppercase tracking-widest">About</h3>
-                  <div className="flex flex-col items-start gap-4 text-sm text-white/60">
-                    <a href="/about" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">About SUPERNOVA</a>
-                    <a href="/how-it-works" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">How It Works</a>
-                    <a href="/why-supernova" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Why SUPERNOVA</a>
-                    <a href="/security-overview" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Security Overview</a>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-6 lg:justify-self-center lg:border-l lg:border-white/10 lg:pl-6">
-                  <h3 className="text-sm font-semibold text-white uppercase tracking-widest">Support</h3>
-                  <div className="flex flex-col items-start gap-4 text-sm text-white/60">
-                    <a href="/faq" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">FAQ</a>
-                    <a href="/support" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Contact Support</a>
-                    <a href="/support/ticket" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Submit a Ticket</a>
-                    <a href="/support/priority" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Priority Support</a>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-6 lg:justify-self-center lg:border-l lg:border-white/10 lg:pl-6 xl:justify-self-end">
-                  <h3 className="text-sm font-semibold text-white uppercase tracking-widest">Legal</h3>
-                  <div className="flex flex-col items-start gap-4 text-sm text-white/60">
-                    <a href="/terms-of-service" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Terms of Service</a>
-                    <a href="/privacy-policy" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Privacy Policy</a>
-                    <a href="/cookies-policy" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Cookies Policy</a>
-                    <a href="/refund-policy" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Refund Policy</a>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-6 lg:justify-self-end lg:border-l lg:border-white/10 lg:pl-6">
-                  <h3 className="text-sm font-semibold text-white uppercase tracking-widest">Connect</h3>
-                  <div className="flex flex-col items-start gap-4 text-sm text-white/60">
-                    <a href="#" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Telegram</a>
-                    <a href="#" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Instagram</a>
-                    <a href="#" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">YouTube</a>
-                    <a href="#" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Facebook</a>
-                    <a href="#" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Discord</a>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-white/5 pt-10 flex flex-col items-center gap-4 text-center">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="text-base font-bold tracking-[0.25em] text-white uppercase">SUPERNOVA</div>
-                  <div className="text-xs font-medium text-[#C9EB55] tracking-[0.2em]">SNOVAPOOL IO</div>
-                </div>
-                <div className="text-xs text-white/40 mt-2">© 2026 SUPERNOVA All rights reserved</div>
-              </div>
+          <footer className="border-t border-white/10 mt-32 pt-16 flex flex-col items-center gap-4 text-center">
+            <div className="flex flex-col items-center gap-2">
+              <div className="text-base font-bold tracking-[0.25em] text-white uppercase">SUPERNOVA</div>
+              <div className="text-xs font-medium text-[#C9EB55] tracking-[0.2em]">SNOVAPOOL IO</div>
             </div>
+            <div className="text-xs text-gray-600 mt-2">© 2026 SUPERNOVA All rights reserved</div>
           </footer>
         </div>
       </div>

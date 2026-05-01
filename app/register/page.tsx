@@ -7,6 +7,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import FormFooter from "@/components/auth/FormFooter";
 import { motion } from "framer-motion";
+import SupernovaFooter from "@/components/SupernovaFooter";
 
 function getSafeNextPath(rawNext: string | null) {
   if (!rawNext) return "/dashboard";
@@ -237,6 +238,8 @@ function RegisterForm() {
           </form>
         </div>
       </div>
+
+      <SupernovaFooter className="relative z-10 pb-10" />
     </div>
   );
 }

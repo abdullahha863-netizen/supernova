@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
+import SupernovaFooter from "@/components/SupernovaFooter";
 
 function createParticles(count: number, durationMin: number, durationMax: number, delayMax: number) {
   return Array.from({ length: count }, () => ({
@@ -206,6 +207,8 @@ export default function SupportPage() {
             </div>
           </motion.div>
         </section>
+
+        <SupernovaFooter />
       </main>
     </div>
   );

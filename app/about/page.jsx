@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Shield, Gauge, Cpu, Scan, Layers, Crown } from "lucide-react";
+import SupernovaFooter from "@/components/SupernovaFooter";
 
 function createParticles(count, durationMin, durationMax, delayMax) {
   return Array.from({ length: count }, () => ({
@@ -354,6 +355,8 @@ export default function AboutPage() {
             </p>
           </motion.div>
         </section>
+
+        <SupernovaFooter />
       </main>
     </div>
   );
