@@ -1,13 +1,13 @@
 "use client";
 
-import { Suspense, useState, useEffect, useMemo, type FormEvent } from "react";
+import { Suspense, useState, useMemo, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import FormFooter from "@/components/auth/FormFooter";
-import { motion } from "framer-motion";
 import SupernovaFooter from "@/components/SupernovaFooter";
+import AuthAmbientBackground from "@/components/auth/AuthAmbientBackground";
 
 function getSafeNextPath(rawNext: string | null) {
   if (!rawNext) return "/dashboard";
@@ -21,41 +21,10 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isClient, setIsClient] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error" | null; message: string }>({
     type: null,
     message: "",
   });
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  const ambientDots = useMemo(
-    () =>
-      isClient
-        ? Array.from({ length: 56 }, () => ({
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            duration: Math.random() * 8 + 5,
-            delay: Math.random() * 8,
-          }))
-        : [],
-    [isClient]
-  );
-
-  const ambientStars = useMemo(
-    () =>
-      isClient
-        ? Array.from({ length: 44 }, () => ({
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            duration: Math.random() * 3 + 2,
-            delay: Math.random() * 5,
-          }))
-        : [],
-    [isClient]
-  );
 
   const nextPath = useMemo(() => getSafeNextPath(searchParams.get("next")), [searchParams]);
 
@@ -102,56 +71,8 @@ function LoginForm() {
   };
 
   return (
-    <div className="relative -mt-4 min-h-screen overflow-hidden bg-[#0A0A0F] pt-4 text-white md:-mt-6 md:pt-6">
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#1a1f2e,_#0a0a0f)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(201,235,85,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(201,235,85,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
-        {isClient && (
-          <>
-            {ambientDots.map((dot, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-[2px] h-[2px] bg-[#C9EB55]/40 rounded-full"
-                style={{
-                  left: dot.left,
-                  top: dot.top,
-                }}
-                animate={{
-                  y: [0, -30, 0],
-                  opacity: [0, 0.8, 0],
-                }}
-                transition={{
-                  duration: dot.duration,
-                  repeat: Infinity,
-                  delay: dot.delay,
-                  ease: "easeInOut",
-                }}
-              />
-            ))}
-
-            {ambientStars.map((star, i) => (
-              <motion.div
-                key={`star-${i}`}
-                className="absolute w-[1px] h-[1px] bg-white rounded-full"
-                style={{
-                  left: star.left,
-                  top: star.top,
-                }}
-                animate={{
-                  opacity: [0.3, 1, 0.3],
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{
-                  duration: star.duration,
-                  repeat: Infinity,
-                  delay: star.delay,
-                  ease: "easeInOut",
-                }}
-              />
-            ))}
-          </>
-        )}
-      </div>
+    <div className="relative -mt-4 min-h-screen overflow-hidden pt-4 text-white md:-mt-6 md:pt-6">
+      <AuthAmbientBackground />
 
       <div className="relative z-10 min-h-screen flex items-center justify-center px-6">
         <div className="nova-glow rounded-2xl p-7 md:p-8 w-full max-w-lg relative overflow-hidden">
