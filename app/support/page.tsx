@@ -16,8 +16,8 @@ function createParticles(count: number, durationMin: number, durationMax: number
 
 export default function SupportPage() {
   const [isClient, setIsClient] = useState(false);
-  const dots = useMemo(() => createParticles(200, 5, 13, 8), []);
-  const stars = useMemo(() => createParticles(150, 2, 5, 5), []);
+  const dots = useMemo(() => (isClient ? createParticles(200, 5, 13, 8) : []), [isClient]);
+  const stars = useMemo(() => (isClient ? createParticles(150, 2, 5, 5) : []), [isClient]);
 
   useEffect(() => {
     setIsClient(true);

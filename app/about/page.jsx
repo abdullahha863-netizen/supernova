@@ -20,8 +20,8 @@ const fadeUp = {
 
 export default function AboutPage() {
   const [isClient, setIsClient] = useState(false);
-  const dots = useMemo(() => createParticles(200, 5, 13, 8), []);
-  const stars = useMemo(() => createParticles(150, 2, 5, 5), []);
+  const dots = useMemo(() => (isClient ? createParticles(200, 5, 13, 8) : []), [isClient]);
+  const stars = useMemo(() => (isClient ? createParticles(150, 2, 5, 5) : []), [isClient]);
 
   useEffect(() => {
     setIsClient(true);
@@ -120,39 +120,29 @@ export default function AboutPage() {
         )}
       </div>
 
-      <main className="relative z-10 max-w-7xl mx-auto px-6 md:px-10 py-24 space-y-24">
-        <section className="text-center max-w-4xl mx-auto">
-          <motion.p
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.6 }}
-            variants={fadeUp}
-            className="text-xs font-semibold uppercase tracking-[0.35em] text-[#C9EB55]/75 mb-5"
-          >
-            About SUPERNOVA
-          </motion.p>
-          <motion.h1
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.6 }}
-            variants={fadeUp}
-            className="relative text-4xl md:text-6xl font-extrabold tracking-tight text-white"
-          >
-            <span
-              aria-hidden
-              className="absolute left-1/2 top-1/2 -z-10 h-28 w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#C9EB55]/14 blur-[70px]"
-            />
-            A premium mining platform built around clarity, trust, and control.
-          </motion.h1>
+      <main className="relative z-10 max-w-7xl mx-auto px-6 md:px-10 py-20 md:py-24 space-y-24">
+        <section className="text-center max-w-5xl mx-auto space-y-5">
+          <div className="relative inline-block">
+            <motion.h1
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.6 }}
+              variants={fadeUp}
+              className="text-5xl md:text-6xl font-bold neon-headline text-[#C9EB55]"
+            >
+              About SUPERNOVA
+            </motion.h1>
+            <div className="pointer-events-none absolute inset-x-0 -bottom-6 h-20 bg-[#C9EB55]/20 blur-[60px]" aria-hidden />
+          </div>
           <motion.p
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, amount: 0.6 }}
             variants={fadeUp}
             transition={{ delay: 0.1, duration: 0.8 }}
-            className="text-lg md:text-xl text-white/70 max-w-3xl mx-auto mt-6 leading-relaxed"
+            className="text-lg md:text-xl text-white/70 max-w-2xl mx-auto"
           >
-            SUPERNOVA is being shaped as a more structured way to experience mining operations, combining premium design, visible protection layers, and a platform identity built to feel credible from the first visit.
+            A premium mining platform built for clarity, speed, and control — designed for precision, performance, and complete operational control.
           </motion.p>
         </section>
 

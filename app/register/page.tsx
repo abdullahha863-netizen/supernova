@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useMemo, type FormEvent } from "react";
+import { Suspense, useEffect, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Input from "@/components/ui/Input";
@@ -22,34 +22,43 @@ function RegisterForm() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error" | null; message: string }>({
     type: null,
     message: "",
   });
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const referralCode = useMemo(() => String(searchParams.get("ref") || "").trim(), [searchParams]);
   const nextPath = useMemo(() => getSafeNextPath(searchParams.get("next")), [searchParams]);
 
   const ambientDots = useMemo(
     () =>
-      Array.from({ length: 200 }, () => ({
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        duration: Math.random() * 8 + 5,
-        delay: Math.random() * 8,
-      })),
-    []
+      isClient
+        ? Array.from({ length: 200 }, () => ({
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            duration: Math.random() * 8 + 5,
+            delay: Math.random() * 8,
+          }))
+        : [],
+    [isClient]
   );
 
   const ambientStars = useMemo(
     () =>
-      Array.from({ length: 150 }, () => ({
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        duration: Math.random() * 3 + 2,
-        delay: Math.random() * 5,
-      })),
-    []
+      isClient
+        ? Array.from({ length: 150 }, () => ({
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            duration: Math.random() * 3 + 2,
+            delay: Math.random() * 5,
+          }))
+        : [],
+    [isClient]
   );
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -96,7 +105,8 @@ function RegisterForm() {
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#1a1f2e,_#0a0a0f)]" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(201,235,85,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(201,235,85,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
-        <>
+        {isClient && (
+          <>
           {ambientDots.map((dot, i) => (
             <motion.div
               key={i}
@@ -136,9 +146,10 @@ function RegisterForm() {
                 delay: star.delay,
                 ease: "easeInOut",
               }}
-            />
-          ))}
-        </>
+              />
+            ))}
+          </>
+        )}
       </div>
       <div className="relative z-10 min-h-screen flex items-center justify-center px-6">
         <div className="nova-glow rounded-2xl p-7 md:p-8 w-full max-w-lg relative overflow-hidden">

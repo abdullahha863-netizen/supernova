@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { DroneGraphic } from "@/components/ui/DroneGraphic";
 
 function createParticles(count, durationMin, durationMax, delayMax) {
@@ -31,8 +31,13 @@ function createParticles(count, durationMin, durationMax, delayMax) {
 
 export default function SilverUpgradePage() {
   const [isHovered, setIsHovered] = useState(false);
-  const dots = useMemo(() => createParticles(200, 5, 13, 8), []);
-  const stars = useMemo(() => createParticles(150, 2, 5, 5), []);
+  const isClient = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false
+  );
+  const dots = useMemo(() => (isClient ? createParticles(200, 5, 13, 8) : []), [isClient]);
+  const stars = useMemo(() => (isClient ? createParticles(150, 2, 5, 5) : []), [isClient]);
 
   return (
     <div className="min-h-screen bg-[#0A0A0F] text-white selection:bg-[#C9EB55] selection:text-black font-sans overflow-x-hidden">

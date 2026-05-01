@@ -33,24 +33,28 @@ function LoginForm() {
 
   const ambientDots = useMemo(
     () =>
-      Array.from({ length: 56 }, () => ({
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        duration: Math.random() * 8 + 5,
-        delay: Math.random() * 8,
-      })),
-    []
+      isClient
+        ? Array.from({ length: 56 }, () => ({
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            duration: Math.random() * 8 + 5,
+            delay: Math.random() * 8,
+          }))
+        : [],
+    [isClient]
   );
 
   const ambientStars = useMemo(
     () =>
-      Array.from({ length: 44 }, () => ({
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        duration: Math.random() * 3 + 2,
-        delay: Math.random() * 5,
-      })),
-    []
+      isClient
+        ? Array.from({ length: 44 }, () => ({
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            duration: Math.random() * 3 + 2,
+            delay: Math.random() * 5,
+          }))
+        : [],
+    [isClient]
   );
 
   const nextPath = useMemo(() => getSafeNextPath(searchParams.get("next")), [searchParams]);

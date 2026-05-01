@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
@@ -20,6 +20,32 @@ export default function TicketPage() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const ambientDots = useMemo(
+    () =>
+      isClient
+        ? Array.from({ length: 200 }, () => ({
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            duration: Math.random() * 8 + 5,
+            delay: Math.random() * 8,
+          }))
+        : [],
+    [isClient]
+  );
+
+  const ambientStars = useMemo(
+    () =>
+      isClient
+        ? Array.from({ length: 150 }, () => ({
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            duration: Math.random() * 3 + 2,
+            delay: Math.random() * 5,
+          }))
+        : [],
+    [isClient]
+  );
 
   async function uploadFirstAttachment() {
     const file = attachments[0];
@@ -95,43 +121,43 @@ export default function TicketPage() {
 
         {isClient && (
           <>
-            {[...Array(200)].map((_, i) => (
+            {ambientDots.map((dot, i) => (
               <motion.div
                 key={i}
                 className="absolute h-[2px] w-[2px] rounded-full bg-[#C9EB55]/40"
                 style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
+                  left: dot.left,
+                  top: dot.top,
                 }}
                 animate={{
                   y: [0, -30, 0],
                   opacity: [0, 0.8, 0],
                 }}
                 transition={{
-                  duration: Math.random() * 8 + 5,
+                  duration: dot.duration,
                   repeat: Infinity,
-                  delay: Math.random() * 8,
+                  delay: dot.delay,
                   ease: "easeInOut",
                 }}
               />
             ))}
 
-            {[...Array(150)].map((_, i) => (
+            {ambientStars.map((star, i) => (
               <motion.div
                 key={`star-${i}`}
                 className="absolute h-[1px] w-[1px] rounded-full bg-white"
                 style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
+                  left: star.left,
+                  top: star.top,
                 }}
                 animate={{
                   opacity: [0.3, 1, 0.3],
                   scale: [1, 1.2, 1],
                 }}
                 transition={{
-                  duration: Math.random() * 3 + 2,
+                  duration: star.duration,
                   repeat: Infinity,
-                  delay: Math.random() * 5,
+                  delay: star.delay,
                   ease: "easeInOut",
                 }}
               />
