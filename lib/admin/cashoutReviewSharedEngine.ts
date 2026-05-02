@@ -18,6 +18,45 @@ export type IpHistorySummary = {
   countryChanges24h: number;
 };
 
+export type RiskLevel = "OK" | "REVIEW" | "HIGH" | "CRITICAL";
+
+export type RiskSignalContribution = {
+  id: string;
+  label: string;
+  points: number;
+  detail: string;
+};
+
+export type RiskEvaluation = {
+  riskScore: number;
+  riskLevel: RiskLevel;
+  contributingSignals: RiskSignalContribution[];
+};
+
+export type RiskWorkerInput = {
+  status: string;
+  lastShare: Date;
+  hashrate: number;
+  rejectRate: number;
+};
+
+export type RiskEvaluationInput = {
+  vpnStatus?: VpnStatus;
+  ipChanges24h?: number;
+  countryChanges24h?: number;
+  currentCountry?: string;
+  loginVsRequestChanged?: boolean;
+  workers?: RiskWorkerInput[];
+  historyRows?: HistoryRow[];
+  recentPayoutCount7d?: number;
+  pendingBalance?: number;
+  totalHashrate?: number;
+  sharesCount?: number;
+  rejectsCount?: number;
+  accountAgeDays?: number;
+  hasCashoutAttempt?: boolean;
+};
+
 export function normalizeIp(input: string | null | undefined) {
   const raw = String(input || "").trim();
   if (!raw) return "";
@@ -124,6 +163,136 @@ export function deriveRiskScore(params: {
   score += Math.min(params.countryChanges24h, 3) * 12;
 
   return Math.min(score, 100);
+}
+
+export function getRiskLevel(score: number): RiskLevel {
+  if (score >= 90) return "CRITICAL";
+  if (score >= 70) return "HIGH";
+  if (score >= 40) return "REVIEW";
+  return "OK";
+}
+
+function clampRiskScore(score: number) {
+  return Math.min(100, Math.max(0, Math.round(score)));
+}
+
+function addSignal(signals: RiskSignalContribution[], id: string, label: string, points: number, detail: string) {
+  signals.push({ id, label, points, detail });
+}
+
+function normalizeRejectRateToPercent(value: number) {
+  return value > 0 && value <= 1 ? value * 100 : value;
+}
+
+function hasRecentHashrateSwing(rows: HistoryRow[], windowMs = 6 * 60 * 60 * 1000) {
+  const now = Date.now();
+  const recent = rows
+    .filter((row) => now - new Date(row.recorded_at).getTime() <= windowMs)
+    .map((row) => Number(row.hashrate || 0))
+    .filter((hashrate) => Number.isFinite(hashrate) && hashrate > 0);
+
+  if (recent.length < 3) return false;
+
+  const latest = recent[recent.length - 1];
+  const previous = recent.slice(0, -1);
+  const average = previous.reduce((sum, value) => sum + value, 0) / previous.length;
+  if (average <= 0) return false;
+
+  const ratio = latest / average;
+  return ratio >= 3 || ratio <= 0.25;
+}
+
+export function evaluateRiskSignals(input: RiskEvaluationInput): RiskEvaluation {
+  const signals: RiskSignalContribution[] = [];
+  const workers = input.workers ?? [];
+  const now = Date.now();
+  const ipChanged = Boolean((input.ipChanges24h ?? 0) > 0 || input.loginVsRequestChanged);
+  const countryChanged = (input.countryChanges24h ?? 0) > 0;
+
+  if (ipChanged || countryChanged || input.vpnStatus === "Yes" || input.vpnStatus === "Suspected") {
+    addSignal(
+      signals,
+      "ip_change",
+      "IP change",
+      10,
+      `${input.ipChanges24h ?? 0} IP change(s) and ${input.countryChanges24h ?? 0} country change(s) observed recently.`,
+    );
+  }
+
+  const flappingWorkers = workers.filter(
+    (worker) => worker.status === "offline" && now - new Date(worker.lastShare).getTime() < 5 * 60 * 1000,
+  );
+  if (flappingWorkers.length > 0) {
+    addSignal(signals, "device_change", "Device change", 10, `${flappingWorkers.length} worker(s) recently disconnected.`);
+  }
+
+  const avgRejectRateRaw = workers.length > 0
+    ? workers.reduce((sum, worker) => sum + Number(worker.rejectRate || 0), 0) / workers.length
+    : 0;
+  const avgRejectRatePercent = normalizeRejectRateToPercent(avgRejectRateRaw);
+  const shareRejectRatePercent = (input.sharesCount ?? 0) > 0
+    ? ((input.rejectsCount ?? 0) / Math.max(1, input.sharesCount ?? 0)) * 100
+    : 0;
+  const highRejectRate = avgRejectRatePercent >= 20 || shareRejectRatePercent >= 20 || (input.rejectsCount ?? 0) > 500;
+  if (highRejectRate) {
+    addSignal(
+      signals,
+      "high_reject_rate",
+      "High reject rate",
+      25,
+      `Average worker reject rate is ${avgRejectRatePercent.toFixed(1)}%; share reject rate is ${shareRejectRatePercent.toFixed(1)}%.`,
+    );
+  }
+
+  const warningWorkers = workers.filter((worker) => worker.status === "warning" || worker.status === "error");
+  const onlineWorkers = workers.filter((worker) => worker.status === "online" || worker.status === "active");
+  const abnormalWorkers = warningWorkers.length > 0 || flappingWorkers.length >= 3 || (workers.length >= 4 && onlineWorkers.length === 0);
+  if (abnormalWorkers) {
+    addSignal(
+      signals,
+      "abnormal_workers",
+      "Abnormal workers",
+      20,
+      `${warningWorkers.length} warning/error worker(s), ${onlineWorkers.length}/${workers.length} online.`,
+    );
+  }
+
+  const totalOnlineHashrate = onlineWorkers.reduce((sum, worker) => sum + Number(worker.hashrate || 0), 0);
+  const avgWorkerHashrate = workers.length > 0
+    ? workers.reduce((sum, worker) => sum + Number(worker.hashrate || 0), 0) / workers.length
+    : 0;
+  const workerHashrateSwing = avgWorkerHashrate > 0 && (totalOnlineHashrate / avgWorkerHashrate > 3 || totalOnlineHashrate / avgWorkerHashrate < 0.2);
+  const hashrateSwing = workerHashrateSwing || hasRecentHashrateSwing(input.historyRows ?? []);
+  if (hashrateSwing) {
+    addSignal(signals, "hashrate_swing", "Sudden hashrate spike/drop", 15, "Recent hashrate moved sharply away from the miner baseline.");
+  }
+
+  if ((input.recentPayoutCount7d ?? 0) >= 5) {
+    addSignal(signals, "too_many_cashouts", "Too many cashouts", 20, `${input.recentPayoutCount7d} cashout request(s) in the last 7 days.`);
+  }
+
+  const illogicalCashout = Boolean(
+    ((input.pendingBalance ?? 0) > 100 && (input.totalHashrate ?? 0) === 0) ||
+    ((input.accountAgeDays ?? Number.POSITIVE_INFINITY) < 3 && (input.pendingBalance ?? 0) > 50),
+  );
+  if (illogicalCashout) {
+    addSignal(signals, "illogical_cashout", "Illogical cashout", 30, "Cashout pattern does not match recent mining activity or account age.");
+  }
+
+  if (highRejectRate && hashrateSwing) {
+    addSignal(signals, "correlation_reject_hashrate", "High reject rate + hashrate spike", 10, "Reject behavior and hashrate movement appeared together.");
+  }
+
+  if (ipChanged && input.hasCashoutAttempt) {
+    addSignal(signals, "correlation_ip_cashout", "IP change + cashout attempt", 15, "Cashout was attempted after recent origin changes.");
+  }
+
+  const riskScore = clampRiskScore(signals.reduce((sum, signal) => sum + signal.points, 0));
+  return {
+    riskScore,
+    riskLevel: getRiskLevel(riskScore),
+    contributingSignals: signals,
+  };
 }
 
 export function buildSeries(rows: HistoryRow[], hours: number, points: number, fallbackHashrate: number): { ts: Date; hashrate: number }[] {

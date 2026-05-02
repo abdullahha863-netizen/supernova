@@ -1,4 +1,4 @@
-export type UiTone = "neutral" | "success" | "warning" | "danger";
+export type UiTone = "neutral" | "success" | "warning" | "danger" | "critical";
 
 export type WindowKey = "1h" | "3h" | "6h" | "24h" | "yesterday" | "3d" | "7d" | "14d" | "30d" | "60d";
 
@@ -52,6 +52,15 @@ export type FraudIndicatorView = {
   statusLabel: string;
   detail: string;
   tone: UiTone;
+  points?: number;
+  severity?: "low" | "medium" | "high" | "critical";
+};
+
+export type RiskSummaryView = {
+  riskScore: number;
+  riskLevel: string;
+  reasons: string[];
+  contributingSignals: FraudIndicatorView[];
 };
 
 export type CashoutReviewDetailPayload = {
@@ -104,6 +113,7 @@ export type CashoutReviewDetailPayload = {
     } | null;
     antiFraud: {
       rows: FraudIndicatorView[];
+      riskSummary: RiskSummaryView;
     } | null;
     actionContext: {
       minerId: string;

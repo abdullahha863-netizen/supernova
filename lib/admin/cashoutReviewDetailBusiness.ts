@@ -1,9 +1,11 @@
 import {
   buildSeries,
   deriveVpnAssessment,
+  evaluateRiskSignals,
   normalizeIp,
   normalizeIpHistoryEvents,
   summarizeIpHistory,
+  type RiskEvaluation,
 } from "@/lib/admin/cashoutReviewSharedEngine";
 import type { WindowKey } from "@/lib/admin/cashoutReviewDetail";
 import type { HistoryRow, RawCashoutReviewDetailData, WorkerRow } from "@/lib/admin/cashoutReviewDetailData";
@@ -56,6 +58,7 @@ export type BusinessCashoutReviewDetail = {
     overallRisk: "clean" | "suspicious" | "high_risk";
     flags: FraudFlag[];
   };
+  riskEvaluation: RiskEvaluation;
   networkAlertLevel: "neutral" | "warning" | "danger";
   hashrate: {
     currentHashrate: number;
@@ -223,6 +226,7 @@ export function deriveCashoutReviewDetail(data: RawCashoutReviewDetailData, sele
     throw new Error("User not found");
   }
 
+  const now = Date.now();
   const normalizedEvents = data.securityRows.slice(0, 25).map((event) => ({
     ...event,
     createdAt: event.created_at,
@@ -240,8 +244,8 @@ export function deriveCashoutReviewDetail(data: RawCashoutReviewDetailData, sele
 
   const paidHistory = data.payoutRows.filter((row) => row.status === "paid");
   const pendingRequest = selectedPayoutId > 0
-    ? data.payoutRows.find((row) => row.id === selectedPayoutId && row.status === "pending") ?? null
-    : data.payoutRows.find((row) => row.status === "pending") ?? null;
+    ? data.payoutRows.find((row) => row.id === selectedPayoutId && ["pending", "review_queue"].includes(row.status)) ?? null
+    : data.payoutRows.find((row) => ["pending", "review_queue"].includes(row.status)) ?? null;
   const hasSelectedPendingRequest = selectedPayoutId > 0 ? Boolean(pendingRequest) : true;
   const totalWithdrawals = paidHistory.reduce((sum, row) => sum + row.amount, 0);
   const lastWithdrawal = paidHistory[0] ?? null;
@@ -251,6 +255,31 @@ export function deriveCashoutReviewDetail(data: RawCashoutReviewDetailData, sele
   const loginVsRequestChanged = Boolean(loginIpEntry?.ip && requestIpEntry?.ip && loginIpEntry.ip !== requestIpEntry.ip);
 
   const fraud = buildFraudFlags(data, data.workerRows);
+  const recentPayoutCount7d = data.payoutRows.filter(
+    (row) => now - new Date(row.payout_date).getTime() < 7 * 24 * 3600 * 1000,
+  ).length;
+  const accountAgeDays = (now - new Date(data.user.createdAt).getTime()) / (24 * 60 * 60 * 1000);
+  const riskEvaluation = evaluateRiskSignals({
+    vpnStatus: vpnAssessment.status,
+    ipChanges24h,
+    countryChanges24h,
+    currentCountry: vpnAssessment.currentCountry,
+    loginVsRequestChanged,
+    workers: data.workerRows.map((worker) => ({
+      status: worker.status,
+      lastShare: worker.last_share,
+      hashrate: worker.hashrate,
+      rejectRate: worker.reject_rate,
+    })),
+    historyRows: data.historyRows,
+    recentPayoutCount7d,
+    pendingBalance: data.profile?.pending_balance ?? 0,
+    totalHashrate: data.profile?.total_hashrate ?? 0,
+    sharesCount: data.sharesCount,
+    rejectsCount: data.rejectsCount,
+    accountAgeDays,
+    hasCashoutAttempt: Boolean(pendingRequest),
+  });
   const flaggedIds = new Set(fraud.flags.map((flag) => flag.id));
   const currentCountry = vpnAssessment.currentCountry || recentIpHistory[0]?.country || "UNKNOWN";
   const networkAlertLevel: "neutral" | "warning" | "danger" =
@@ -275,7 +304,6 @@ export function deriveCashoutReviewDetail(data: RawCashoutReviewDetailData, sele
     Object.entries(windows).map(([windowKey, points]) => [windowKey, points.length ? Math.max(...points.map((point) => point.hashrate)) : 0]),
   ) as Record<WindowKey, number>;
 
-  const now = Date.now();
   const errorsCount = data.workerRows.filter((worker) => worker.status === "error").length;
   const activeWorkers = data.workerRows.filter((worker) => now - new Date(worker.last_share).getTime() < 10 * 60 * 1000);
   const oldestShare = data.workerRows.reduce<Date | null>((oldest, worker) => {
@@ -314,6 +342,7 @@ export function deriveCashoutReviewDetail(data: RawCashoutReviewDetailData, sele
     requestIpEntry,
     loginVsRequestChanged,
     fraud,
+    riskEvaluation,
     networkAlertLevel,
     hashrate: {
       currentHashrate,

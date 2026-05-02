@@ -4,6 +4,7 @@ import { enforceRateLimit, safeJsonBody, safeResponseError, validateId, validate
 import { isAdminRequest } from "@/lib/adminAuth";
 import { prisma } from "@/lib/prisma";
 import { getDashboardUserIdFromRequest } from "@/lib/auth";
+import { evaluateMinerFraudRisk } from "@/lib/miningFraudRisk";
 
 export type CashoutStatus = "pending" | "approved" | "rejected" | "review_queue";
 
@@ -256,6 +257,16 @@ export async function POST(req: NextRequest) {
           throw new CashoutValidationError("Cashout amount exceeds pending balance");
         }
 
+        const risk = await evaluateMinerFraudRisk(userId, { hasCashoutAttempt: true });
+        if (risk.riskScore >= 90) {
+          throw new CashoutValidationError(
+            `Cashout is temporarily blocked for fraud review. Risk Score: ${risk.riskScore} (${risk.riskLevel}).`,
+            403,
+          );
+        }
+
+        const initialStatus = risk.riskScore >= 40 ? "review_queue" : "pending";
+
         await tx.minerProfile.update({
           where: { userId },
           data: {
@@ -270,14 +281,16 @@ export async function POST(req: NextRequest) {
             userId,
             payoutDate: new Date(),
             amount: requestedAmount,
-            status: "pending",
+            status: initialStatus,
             tx: "Processing",
             idempotencyKey,
             statusHistory: {
               create: {
                 fromStatus: null,
-                toStatus: "pending",
-                note: "Cashout requested; funds reserved from pending balance.",
+                toStatus: initialStatus,
+                note: initialStatus === "review_queue"
+                  ? `Cashout requested; funds reserved and queued for admin review. Risk Score: ${risk.riskScore} (${risk.riskLevel}).`
+                  : "Cashout requested; funds reserved from pending balance.",
               },
             },
           },

@@ -24,8 +24,10 @@ function Badge({ label, tone = "neutral" }: { label: string; tone?: UiTone }) {
     : tone === "warning"
       ? "border-amber-400/35 bg-amber-500/10 text-amber-200"
       : tone === "danger"
-        ? "border-red-400/35 bg-red-500/10 text-red-200"
-        : "border-white/15 bg-white/[0.04] text-white/70";
+        ? "border-orange-400/40 bg-orange-500/12 text-orange-100"
+        : tone === "critical"
+          ? "border-red-300/60 bg-red-600/20 text-red-50 ring-1 ring-red-400/25"
+          : "border-white/15 bg-white/[0.04] text-white/70";
 
   return <span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${toneClass}`}>{label}</span>;
 }
@@ -36,8 +38,10 @@ function WorkerStatusBadge({ status, tone }: { status: string; tone: UiTone }) {
     : tone === "warning"
       ? "border-amber-400/35 bg-amber-500/10 text-amber-200"
       : tone === "danger"
-        ? "border-red-400/35 bg-red-500/10 text-red-200"
-        : "border-white/15 bg-white/[0.04] text-white/65";
+        ? "border-orange-400/40 bg-orange-500/12 text-orange-100"
+        : tone === "critical"
+          ? "border-red-300/60 bg-red-600/20 text-red-50 ring-1 ring-red-400/25"
+          : "border-white/15 bg-white/[0.04] text-white/65";
 
   return <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ${toneClass}`}>{status}</span>;
 }
@@ -392,17 +396,13 @@ export default function CashoutReviewPage() {
     if (!data?.antiFraud?.rows) return null;
 
     const rows = data.antiFraud.rows;
+    const riskSummary = data.antiFraud.riskSummary;
     const dangerCount = rows.filter(r => r.tone === "danger").length;
-    const totalCount = rows.length;
-
-    // Calculate risk score based on danger signals
-    const riskScore = Math.min(Math.round((dangerCount / Math.max(totalCount, 1)) * 100), 100);
-
-    // Determine risk level
-    const riskLevel = riskScore >= 70 ? "high" : riskScore >= 40 ? "medium" : "low";
-
-    // Main reason - find the most critical signal
-    const mainReason = rows.find(r => r.tone === "danger")?.detail || "No significant risk indicators detected";
+    const riskScore = riskSummary.riskScore;
+    const riskLevel = riskSummary.riskLevel;
+    const mainReason = riskSummary.reasons.length > 0
+      ? riskSummary.reasons.join(", ")
+      : "No significant risk indicators detected";
 
     // Confidence level
     const confidence = dangerCount > 0 ? "High" : "Very High";
@@ -424,7 +424,8 @@ export default function CashoutReviewPage() {
       riskScore,
       riskLevel,
       mainReason,
-      confidence
+      confidence,
+      contributingSignals: riskSummary.contributingSignals,
     };
   }, [data?.antiFraud]);
 
@@ -707,11 +708,12 @@ export default function CashoutReviewPage() {
                   </div>
                   <div className="text-right">
                     <div className={`inline-flex rounded-full border px-4 py-2 text-sm font-bold uppercase tracking-[0.12em] ${
-                      fraudAssessment.riskLevel === "high" ? "border-red-400/35 bg-red-500/10 text-red-200" :
-                      fraudAssessment.riskLevel === "medium" ? "border-amber-400/35 bg-amber-500/10 text-amber-200" :
+                      fraudAssessment.riskScore >= 90 ? "border-red-300/60 bg-red-600/20 text-red-50 ring-1 ring-red-400/25" :
+                      fraudAssessment.riskScore >= 70 ? "border-orange-400/40 bg-orange-500/12 text-orange-100" :
+                      fraudAssessment.riskScore >= 40 ? "border-amber-400/35 bg-amber-500/10 text-amber-200" :
                       "border-green-400/25 bg-green-500/10 text-green-200"
                     }`}>
-                      {fraudAssessment.riskLevel.toUpperCase()} RISK
+                      {fraudAssessment.riskLevel}
                     </div>
                     <div className="mt-2 text-xs text-white/50">Confidence: {fraudAssessment.confidence}</div>
                   </div>
@@ -726,7 +728,8 @@ export default function CashoutReviewPage() {
                   <div className="mt-2 h-2 w-full bg-white/10 rounded-full overflow-hidden">
                     <div
                       className={`h-full transition-all duration-300 ${
-                        fraudAssessment.riskScore >= 70 ? "bg-red-500" :
+                        fraudAssessment.riskScore >= 90 ? "bg-red-600" :
+                        fraudAssessment.riskScore >= 70 ? "bg-orange-500" :
                         fraudAssessment.riskScore >= 40 ? "bg-amber-500" : "bg-green-500"
                       }`}
                       style={{ width: `${Math.min(fraudAssessment.riskScore, 100)}%` }}
@@ -736,10 +739,11 @@ export default function CashoutReviewPage() {
                 <div className="rounded-xl border border-white/10 bg-black/20 p-4">
                   <div className="text-xs uppercase tracking-[0.16em] text-white/45 mb-2">Risk Level</div>
                   <div className={`text-lg font-bold ${
-                    fraudAssessment.riskLevel === "high" ? "text-red-300" :
-                    fraudAssessment.riskLevel === "medium" ? "text-amber-300" : "text-green-300"
+                    fraudAssessment.riskScore >= 90 ? "text-red-100" :
+                    fraudAssessment.riskScore >= 70 ? "text-orange-200" :
+                    fraudAssessment.riskScore >= 40 ? "text-amber-300" : "text-green-300"
                   }`}>
-                    {fraudAssessment.riskLevel.toUpperCase()}
+                    {fraudAssessment.riskLevel}
                   </div>
                   <div className="mt-1 text-xs text-white/50">Automated assessment</div>
                 </div>
@@ -754,6 +758,21 @@ export default function CashoutReviewPage() {
 
               {/* ── Signal Groups ────────────────────────────────────────────────── */}
               <div className="space-y-6">
+                <div>
+                  <h3 className="text-sm font-bold text-[#C9EB55] uppercase tracking-[0.14em] mb-3">Contributing Signals</h3>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {fraudAssessment.contributingSignals.length > 0 ? (
+                      fraudAssessment.contributingSignals.map((row) => (
+                        <FraudSignalCard key={`${row.label}-${row.points ?? 0}`} row={row} />
+                      ))
+                    ) : (
+                      <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/55">
+                        No risk contributors detected.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Identity Signals */}
                 <div>
                   <h3 className="text-sm font-bold text-[#C9EB55] uppercase tracking-[0.14em] mb-3">Identity Signals</h3>

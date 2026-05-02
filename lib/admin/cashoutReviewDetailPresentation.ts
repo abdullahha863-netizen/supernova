@@ -30,13 +30,6 @@ function formatNumber(value: number, decimals = 2) {
   return Number(value || 0).toFixed(decimals);
 }
 
-function toneFromRisk(overallRisk: string | null | undefined): UiTone {
-  if (overallRisk === "high_risk") return "danger";
-  if (overallRisk === "suspicious") return "warning";
-  if (overallRisk === "clean") return "success";
-  return "neutral";
-}
-
 function toneFromPayoutStatus(status: string | null | undefined): UiTone {
   if (!status) return "neutral";
   if (status === "pending") return "warning";
@@ -58,21 +51,35 @@ function toneFromWorkerStatus(status: string): UiTone {
   return "neutral";
 }
 
+function toneFromRiskScore(score: number): UiTone {
+  if (score >= 90) return "critical";
+  if (score >= 70) return "danger";
+  if (score >= 40) return "warning";
+  return "success";
+}
+
+function riskLevelDisplayLabel(level: string) {
+  return level === "HIGH" ? "HIGH RISK" : level;
+}
+
 export function mapCashoutReviewDetailToPayload(detail: BusinessCashoutReviewDetail): CashoutReviewDetailPayload {
-  const topRiskTone = toneFromRisk(detail.fraud.overallRisk);
   const payoutTone = toneFromPayoutStatus(detail.pendingRequest?.status);
+  const riskTone = toneFromRiskScore(detail.riskEvaluation.riskScore);
+  const riskLevelLabel = riskLevelDisplayLabel(detail.riskEvaluation.riskLevel);
 
   const topBarBadges: DetailBadge[] = [
     {
       label: detail.pendingRequest ? `Request #${detail.pendingRequest.id}` : "No Pending Request",
       tone: detail.pendingRequest ? "warning" : "neutral",
     },
-    { label: detail.fraud.overallRisk.replace("_", " "), tone: topRiskTone },
+    { label: `Risk ${detail.riskEvaluation.riskScore}/100`, tone: riskTone },
+    { label: riskLevelLabel, tone: riskTone },
     { label: detail.pendingRequest?.status || "no status", tone: payoutTone },
   ];
 
   const heroBadges: DetailBadge[] = [
-    { label: detail.fraud.overallRisk.replace("_", " "), tone: topRiskTone },
+    { label: `Risk ${detail.riskEvaluation.riskScore}/100`, tone: riskTone },
+    { label: riskLevelLabel, tone: riskTone },
     {
       label: detail.pendingRequest ? `Request #${detail.pendingRequest.id}` : "No Pending Request",
       tone: detail.pendingRequest ? "warning" : "neutral",
@@ -100,8 +107,8 @@ export function mapCashoutReviewDetailToPayload(detail: BusinessCashoutReviewDet
     },
     {
       label: "Primary Flag",
-      value: detail.fraud.flags[0]?.label || detail.currentCountry,
-      sub: detail.fraud.flags[0]?.detail || `Current observed country: ${detail.currentCountry}`,
+      value: detail.riskEvaluation.contributingSignals[0]?.label || detail.currentCountry,
+      sub: detail.riskEvaluation.contributingSignals[0]?.detail || `Current observed country: ${detail.currentCountry}`,
     },
   ];
 
@@ -234,25 +241,37 @@ export function mapCashoutReviewDetailToPayload(detail: BusinessCashoutReviewDet
     { label: "Runtime Errors", value: String(detail.uptime.errorsCount) },
   ];
 
-  const overallRiskScore = detail.fraud.overallRisk === "high_risk"
-    ? 70
-    : detail.fraud.overallRisk === "suspicious"
-      ? 40
-      : 0;
-
   const antiFraudRows: FraudIndicatorView[] = INDICATORS.map((indicator) => {
+    const matchingRiskSignal = detail.riskEvaluation.contributingSignals.find((signal) => {
+      if (signal.id === indicator.id) return true;
+      if (indicator.id === "frequent_ip_changes") return signal.id === "ip_change";
+      if (indicator.id === "worker_flapping") return signal.id === "device_change";
+      if (indicator.id === "high_reject_rate") return signal.id === "high_reject_rate" || signal.id === "abnormal_workers";
+      if (indicator.id === "hashrate_spike" || indicator.id === "hashrate_drop") return signal.id === "hashrate_swing";
+      if (indicator.id === "rapid_cashouts") return signal.id === "too_many_cashouts";
+      if (indicator.id === "cashout_no_mining") return signal.id === "illogical_cashout";
+      return false;
+    });
     const matchingFlag = detail.fraud.flags.find((flag) => flag.id === indicator.id);
     const statusLabel = !matchingFlag
       ? "ok"
-      : overallRiskScore >= 70
+      : detail.riskEvaluation.riskScore >= 90
         ? "critical"
         : "flagged";
 
     return {
       label: indicator.label,
-      statusLabel,
-      detail: matchingFlag?.detail ?? "No abnormal signal detected.",
-      tone: matchingFlag ? "danger" : "success",
+      statusLabel: matchingRiskSignal ? statusLabel : "ok",
+      detail: matchingRiskSignal?.detail ?? matchingFlag?.detail ?? "No abnormal signal detected.",
+      tone: matchingRiskSignal ? "danger" : "success",
+      points: matchingRiskSignal?.points,
+      severity: matchingRiskSignal
+        ? detail.riskEvaluation.riskScore >= 90
+          ? "critical"
+          : detail.riskEvaluation.riskScore >= 70
+            ? "high"
+            : "medium"
+        : "low",
     };
   });
 
@@ -338,6 +357,19 @@ export function mapCashoutReviewDetailToPayload(detail: BusinessCashoutReviewDet
       },
       antiFraud: {
         rows: antiFraudRows,
+        riskSummary: {
+          riskScore: detail.riskEvaluation.riskScore,
+          riskLevel: riskLevelLabel,
+          reasons: detail.riskEvaluation.contributingSignals.map((signal) => signal.label),
+          contributingSignals: detail.riskEvaluation.contributingSignals.map((signal) => ({
+            label: signal.label,
+            statusLabel: `+${signal.points}`,
+            detail: signal.detail,
+            tone: signal.points >= 30 ? "danger" : signal.points >= 15 ? "warning" : "neutral",
+            points: signal.points,
+            severity: signal.points >= 30 ? "critical" : signal.points >= 20 ? "high" : signal.points >= 10 ? "medium" : "low",
+          })),
+        },
       },
       actionContext: {
         minerId: detail.user.id,

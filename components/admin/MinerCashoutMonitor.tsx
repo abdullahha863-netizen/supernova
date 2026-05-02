@@ -21,11 +21,14 @@ function Badge({ label, tone }: { label: string; tone: ListBadgeTone }) {
       : tone === "warn"
         ? "border-amber-400/35 bg-amber-500/12 text-amber-200"
         : tone === "danger"
-          ? "border-red-400/35 bg-red-500/12 text-red-200"
-          : "border-white/12 bg-white/[0.05] text-white/65";
+          ? "border-orange-400/40 bg-orange-500/12 text-orange-100"
+          : tone === "critical"
+            ? "border-red-300/60 bg-red-600/20 text-red-50 ring-1 ring-red-400/25"
+            : "border-white/12 bg-white/[0.05] text-white/65";
 
   return <span className={`inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${classes}`}>{label}</span>;
 }
+
 export default function MinerCashoutMonitor() {
   const [payload, setPayload] = useState<CashoutReviewPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,6 +64,7 @@ export default function MinerCashoutMonitor() {
             description: "Failed to load live cashout requests.",
           },
           rows: [],
+          minerGroups: [],
           error: "Failed to load live cashout requests.",
         });
       })
@@ -69,18 +73,23 @@ export default function MinerCashoutMonitor() {
     return () => controller.abort();
   }, []);
 
-  const filteredRows = useMemo(() => {
-    const rows = payload?.rows ?? [];
+  const filteredGroups = useMemo(() => {
+    const groups = payload?.minerGroups ?? [];
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return rows;
+    if (!query) return groups;
 
-    return rows.filter((record) => {
-      const haystack = [record.minerId, record.minerName, record.minerEmail]
+    return groups.filter((group) => {
+      const haystack = [
+        group.minerId,
+        group.minerName,
+        group.minerEmail,
+        ...group.requests.map((request) => request.payoutId),
+      ]
         .map((value) => String(value || "").toLowerCase());
 
       return haystack.some((value) => value.includes(query));
     });
-  }, [payload?.rows, searchQuery]);
+  }, [payload?.minerGroups, searchQuery]);
 
   return (
     <div className="space-y-6">
@@ -125,7 +134,7 @@ export default function MinerCashoutMonitor() {
             <p className="text-[11px] uppercase tracking-[0.2em] text-white/42">Cashout Queue</p>
             <h2 className="mt-2 text-2xl font-black text-white">Pending Cashout Requests</h2>
           </div>
-          <p className="text-sm text-white/50">Each row has one action button that takes you to the separate details page.</p>
+          <p className="text-sm text-white/50">Grouped by miner, with every open payout request still available.</p>
         </div>
 
         <div className="mb-5 relative max-w-xl">
@@ -149,51 +158,87 @@ export default function MinerCashoutMonitor() {
         </div>
 
         <div className="space-y-4">
-          {!loading && filteredRows.length === 0 ? (
+          {!loading && filteredGroups.length === 0 ? (
             <div className="rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] p-5 text-sm text-white/50">
               No cashout requests found matching your search.
             </div>
           ) : null}
 
-          {filteredRows.map((record) => {
+          {filteredGroups.map((group) => {
             return (
               <article
-                key={`${record.payoutId}-${record.minerId}`}
+                key={group.minerId}
                 className="rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] p-5"
               >
-                <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-                  <div className="grid flex-1 gap-4 md:grid-cols-2 xl:grid-cols-[1.2fr_1fr_0.8fr_0.8fr]">
+                <div className="flex flex-col gap-5">
+                  <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr_0.8fr_0.8fr] xl:items-start">
                     <div>
                       <p className="text-[11px] uppercase tracking-[0.16em] text-white/38">Miner</p>
-                      <p className="mt-2 text-xl font-black text-white">{record.minerName}</p>
-                      <p className="mt-1 font-mono text-xs text-white/50">{record.minerId}</p>
+                      <p className="mt-2 text-xl font-black text-white">{group.minerName}</p>
+                      <p className="mt-1 font-mono text-xs text-white/50">{group.minerId}</p>
+                      <p className="mt-1 text-xs text-white/50">{group.minerEmail}</p>
                     </div>
                     <div>
-                      <p className="text-[11px] uppercase tracking-[0.16em] text-white/38">Email</p>
-                      <p className="mt-2 text-sm font-semibold text-white/88">{record.minerEmail}</p>
-                      <p className="mt-1 text-xs text-white/50">{record.requestedAtLabel}</p>
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-white/38">Open Requests</p>
+                      <p className="mt-2 text-2xl font-black text-white">{group.openRequestCountLabel}</p>
+                      <p className="mt-1 text-xs text-white/50">Newest: {group.newestPayoutLabel.replace("Requested ", "")}</p>
                     </div>
                     <div>
-                      <p className="text-[11px] uppercase tracking-[0.16em] text-white/38">Payout</p>
-                      <p className="mt-2 text-2xl font-black text-[#D7F27A]">{record.payoutAmountLabel}</p>
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-white/38">Total Requested</p>
+                      <p className="mt-2 text-2xl font-black text-[#D7F27A]">{group.totalRequestedAmountLabel}</p>
                     </div>
                     <div>
-                      <p className="text-[11px] uppercase tracking-[0.16em] text-white/38">Risk</p>
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-white/38">Highest Risk</p>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <Badge label={record.riskLabel} tone={record.riskTone} />
-                        <Badge label={record.vpnStatus} tone={record.vpnTone} />
+                        <Badge label={group.highestRiskLabel} tone={group.highestRiskTone} />
+                        <Badge label={group.highestRiskLevelLabel} tone={group.highestRiskTone} />
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-start gap-3 xl:items-end">
-                    <div className="text-sm text-white/50">{record.locationLabel}</div>
-                    <Link
-                      href={`/admin/dashboard/cashout-review/${record.minerId}?payoutId=${record.payoutId}`}
-                      className="rounded-2xl border border-[#C9EB55]/35 bg-[#C9EB55]/12 px-5 py-3 text-sm font-semibold text-[#E6FF97] transition hover:bg-[#C9EB55]/20"
-                    >
-                      Review Details
-                    </Link>
+                  <div className="rounded-2xl border border-white/10 bg-black/20">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
+                      <div>
+                        <p className="text-sm font-semibold text-white">View requests</p>
+                        <p className="mt-0.5 text-xs text-white/45">Every open payout for this miner is listed below.</p>
+                      </div>
+                      <Badge label={group.openRequestCountLabel} tone={group.openRequestCount > 1 ? "warn" : "neutral"} />
+                    </div>
+                    <div className="divide-y divide-white/10">
+                      {group.requests.map((record) => (
+                        <div key={`${record.payoutId}-${record.minerId}`} className="grid gap-4 px-4 py-4 md:grid-cols-[0.8fr_0.8fr_1fr_auto] md:items-center">
+                          <div>
+                            <p className="text-[11px] uppercase tracking-[0.16em] text-white/38">Request</p>
+                            <p className="mt-1 font-mono text-sm font-semibold text-white">#{record.payoutId}</p>
+                            <p className="mt-1 text-xs text-white/50">{record.requestedAtLabel}</p>
+                          </div>
+                          <div>
+                            <p className="text-[11px] uppercase tracking-[0.16em] text-white/38">Payout</p>
+                            <p className="mt-1 text-lg font-black text-[#D7F27A]">{record.payoutAmountLabel}</p>
+                          </div>
+                          <div>
+                            <p className="text-[11px] uppercase tracking-[0.16em] text-white/38">Risk</p>
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                              <Badge label={record.riskLabel} tone={record.riskTone} />
+                              <Badge label={record.riskLevelLabel} tone={record.riskTone} />
+                              <Badge label={record.vpnStatus} tone={record.vpnTone} />
+                            </div>
+                            <div className="mt-2 text-xs leading-5 text-white/50">
+                              {record.reasons.length > 0 ? `Reasons: ${record.reasons.slice(0, 3).join(", ")}` : "Reasons: No active risk contributors"}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-start gap-3 md:items-end">
+                            <div className="text-sm text-white/50">{record.locationLabel}</div>
+                            <Link
+                              href={`/admin/dashboard/cashout-review/${record.minerId}?payoutId=${record.payoutId}`}
+                              className="rounded-2xl border border-[#C9EB55]/35 bg-[#C9EB55]/12 px-5 py-3 text-sm font-semibold text-[#E6FF97] transition hover:bg-[#C9EB55]/20"
+                            >
+                              Review Details
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </article>

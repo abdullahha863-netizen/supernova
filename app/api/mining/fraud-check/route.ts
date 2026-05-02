@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { enforceRateLimit, safeJsonBody, safeResponseError, validateId, validateNonEmptyString } from "@/lib/apiHardening";
 import { isAdminRequest } from "@/lib/adminAuth";
 import { prisma } from "@/lib/prisma";
+import { evaluateMinerFraudRisk } from "@/lib/miningFraudRisk";
 
 type FraudFlag = {
   id: string;
@@ -229,14 +230,8 @@ export async function GET(req: NextRequest) {
           ? "suspicious"
           : "clean";
 
-    const score = Math.min(
-      100,
-      flags.reduce((total, flag) => {
-        if (flag.severity === "high") return total + 35;
-        if (flag.severity === "medium") return total + 20;
-        return total + 10;
-      }, 0),
-    );
+    const risk = await evaluateMinerFraudRisk(userId, { hasCashoutAttempt: true });
+    const score = risk.riskScore;
 
     if (score >= 70) {
       const recentNotification = await prisma.notification.findFirst({
@@ -252,7 +247,7 @@ export async function GET(req: NextRequest) {
           data: {
             type: "high_fraud",
             title: "High Fraud Risk Detected",
-            message: `Miner ${userId} has a fraud score of ${score}/100.`,
+            message: `Miner ${userId} has a fraud score of ${score}/100 (${risk.riskLevel}).`,
             severity: "critical",
             link: `/admin/dashboard/cashout-review/${userId}`,
           },
@@ -264,6 +259,9 @@ export async function GET(req: NextRequest) {
       ok: true,
       overallRisk,
       score,
+      riskScore: risk.riskScore,
+      riskLevel: risk.riskLevel,
+      contributingSignals: risk.contributingSignals,
       flagCount: flags.length,
       flags,
     });

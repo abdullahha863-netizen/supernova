@@ -1,3 +1,5 @@
+import type { RiskLevel, RiskSignalContribution } from "@/lib/admin/cashoutReviewSharedEngine";
+
 export type CashoutRequestApiRow = {
   payoutId: number;
   userId: string;
@@ -10,7 +12,7 @@ export type CashoutRequestApiRow = {
 
 export type VpnStatus = "Yes" | "No" | "Suspected" | "Unknown";
 
-export type ListBadgeTone = "safe" | "warn" | "danger" | "neutral";
+export type ListBadgeTone = "safe" | "warn" | "danger" | "critical" | "neutral";
 
 export type CashoutReviewListRow = {
   payoutId: number;
@@ -23,13 +25,35 @@ export type CashoutReviewListRow = {
   country: string;
   vpnStatus: VpnStatus;
   riskScore: number;
+  riskLevel: RiskLevel;
+  contributingSignals: RiskSignalContribution[];
   requestedAtLabel: string;
   payoutAmountLabel: string;
   riskLabel: string;
+  riskLevelLabel: string;
+  reasons: string[];
   riskTone: ListBadgeTone;
   vpnTone: ListBadgeTone;
   locationLabel: string;
   sourceLabel: "live";
+};
+
+export type CashoutReviewMinerGroup = {
+  minerId: string;
+  minerName: string;
+  minerEmail: string;
+  highestRiskScore: number;
+  highestRiskLevel: RiskLevel;
+  highestRiskLabel: string;
+  highestRiskLevelLabel: string;
+  highestRiskTone: ListBadgeTone;
+  openRequestCount: number;
+  openRequestCountLabel: string;
+  totalRequestedAmount: number;
+  totalRequestedAmountLabel: string;
+  newestPayoutDate: string;
+  newestPayoutLabel: string;
+  requests: CashoutReviewListRow[];
 };
 
 export type CashoutReviewPayload = {
@@ -49,10 +73,12 @@ export type CashoutReviewPayload = {
     description: string;
   };
   rows: CashoutReviewListRow[];
+  minerGroups: CashoutReviewMinerGroup[];
   error?: string;
 };
 
 function getRiskTone(score: number): ListBadgeTone {
+  if (score >= 90) return "critical";
   if (score >= 70) return "danger";
   if (score >= 40) return "warn";
   return "safe";
@@ -94,6 +120,7 @@ export function buildCashoutReviewPayload(
           : "Open the details page for any miner to review hashrate history, fraud signals, and approve or reject the cashout request.",
     },
     rows,
+    minerGroups: [],
     error: options.error,
   };
 }
