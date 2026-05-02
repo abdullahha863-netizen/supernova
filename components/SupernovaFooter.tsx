@@ -12,11 +12,11 @@ export default function SupernovaFooter({ className = "" }: SupernovaFooterProps
           SUPERNOVA
         </div>
         <div className="text-xs font-medium text-[#C9EB55] tracking-[0.2em]">
-          SNOVAPOOL IO
+          SUPERNOVA POOL
         </div>
       </div>
       <div className="text-xs text-gray-600 mt-2">
-        © 2026 SUPERNOVA All rights reserved
+        &copy; 2026 SUPERNOVA. All rights reserved.
       </div>
     </footer>
   );

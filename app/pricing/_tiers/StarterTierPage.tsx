@@ -258,7 +258,7 @@ export default function StarterTierPage() {
                   </div>
                   <h3 className="text-2xl font-bold text-white">100% Free</h3>
                 </div>
-                <p className="text-white/80 leading-relaxed mb-6">No credit card required. Get started instantly with full access to our core mining features.</p>
+                <p className="text-white/80 leading-relaxed mb-6">No credit card required. Start with access to core mining features.</p>
                 
                 <div className="space-y-2 text-sm text-white/70">
                   <p>✓ Unlimited Duration</p>
@@ -334,9 +334,9 @@ export default function StarterTierPage() {
         <footer className="border-t border-white/10 mt-32 pt-16 flex flex-col items-center gap-4 text-center">
           <div className="flex flex-col items-center gap-2">
             <div className="text-base font-bold tracking-[0.25em] text-white uppercase">SUPERNOVA</div>
-            <div className="text-xs font-medium text-[#C9EB55] tracking-[0.2em]">SNOVAPOOL IO</div>
+            <div className="text-xs font-medium text-[#C9EB55] tracking-[0.2em]">SUPERNOVA POOL</div>
           </div>
-          <div className="text-xs text-gray-600 mt-2">© 2026 SUPERNOVA All rights reserved</div>
+          <div className="text-xs text-gray-600 mt-2">&copy; 2026 SUPERNOVA. All rights reserved.</div>
         </footer>
       </div>
     </div>

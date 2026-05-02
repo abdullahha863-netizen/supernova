@@ -123,7 +123,7 @@ const sections: FAQSection[] = [
       {
         question: "What are plan-based support windows?",
         answer:
-          "Typical windows are Silver: 10-24 hours, Hash Pro: 6-12 hours, Titan Elite: 1-6 hours.",
+          "Typical windows are Silver: 10-24 hours, Hash Pro: 6-12 hours, Titan Elite: 1-5 hours.",
       },
       {
         question: "What is the support email?",

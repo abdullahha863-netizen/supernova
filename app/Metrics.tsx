@@ -82,7 +82,7 @@ export default function Metrics({ showDashboard = false, showAdminDashboard = fa
         "Protection: Not included",
         "Emergency Lock: Not included",
       ],
-      cta: "Start Igniting",
+      cta: "Start Free",
     },
     {
       name: "Silver",
@@ -100,7 +100,7 @@ export default function Metrics({ showDashboard = false, showAdminDashboard = fa
         "Protection: Guardian Basic / Scout",
         "Emergency Lock: Not included",
       ],
-      cta: "Lock In Pulse",
+      cta: "Choose Silver",
     },
     {
       name: "Hash Pro",
@@ -138,7 +138,7 @@ export default function Metrics({ showDashboard = false, showAdminDashboard = fa
         "Protection: Guardian Full Coverage",
         "Emergency Lock: Available",
       ],
-      cta: "Enter Apex",
+      cta: "Choose Titan",
     },
   ];
 
@@ -183,38 +183,30 @@ export default function Metrics({ showDashboard = false, showAdminDashboard = fa
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.4, delay: 0.4 }}
-            className="mt-12 flex flex-col sm:flex-row justify-center gap-6"
+            className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5"
           >
-            <div className="flex flex-col gap-3">
-              <motion.button
-                whileHover={{ scale: 1.08, boxShadow: "0 0 30px rgba(201,235,85,0.45)" }}
-                whileTap={{ scale: 0.95 }}
-                className="cursor-pointer px-10 py-4 rounded-lg font-bold text-lg border-2 border-[#C9EB55] text-[#C9EB55] hover:bg-[#C9EB55]/10 transition-all duration-300"
-              >
-                Get Started
-              </motion.button>
-              {showAdminDashboard ? (
-                <Link href="/admin/dashboard">
-                  <motion.button
-                    whileHover={{ scale: 1.04, boxShadow: "0 0 22px rgba(201,235,85,0.25)" }}
-                    whileTap={{ scale: 0.96 }}
-                    className="cursor-pointer w-full px-10 py-3 rounded-lg font-bold text-sm uppercase tracking-[0.14em] bg-[#C9EB55]/12 border border-[#C9EB55]/60 text-[#DFF58C] hover:bg-[#C9EB55]/18 transition-all duration-300"
-                  >
-                    Admin Dashboard
-                  </motion.button>
-                </Link>
-              ) : null}
-            </div>
+            <Link
+              href="/register"
+              className="inline-flex min-w-[190px] items-center justify-center rounded-lg border-2 border-[#C9EB55] bg-black/65 px-10 py-4 text-lg font-bold text-[#DFF58C] shadow-[0_12px_36px_rgba(0,0,0,0.38),0_0_24px_rgba(201,235,85,0.18)] backdrop-blur-sm transition-all duration-300 hover:scale-[1.04] hover:bg-[#C9EB55]/12 hover:shadow-[0_0_30px_rgba(201,235,85,0.45)]"
+            >
+              Get Started
+            </Link>
 
             {showDashboard ? (
-              <Link href="/dashboard">
-                <motion.button
-                  whileHover={{ scale: 1.08, boxShadow: "0 0 30px rgba(201,235,85,0.3)" }}
-                  whileTap={{ scale: 0.95 }}
-                  className="cursor-pointer px-10 py-4 rounded-lg font-bold text-lg bg-black/50 border-2 border-[#C9EB55]/70 text-white hover:bg-black/30 transition-all duration-300"
-                >
-                  Dashboard
-                </motion.button>
+              <Link
+                href="/dashboard"
+                className="inline-flex min-w-[190px] items-center justify-center rounded-lg border-2 border-[#C9EB55]/70 bg-black/65 px-10 py-4 text-lg font-bold text-white shadow-[0_12px_36px_rgba(0,0,0,0.32)] backdrop-blur-sm transition-all duration-300 hover:scale-[1.04] hover:bg-black/45 hover:shadow-[0_0_30px_rgba(201,235,85,0.3)]"
+              >
+                Dashboard
+              </Link>
+            ) : null}
+
+            {showAdminDashboard ? (
+              <Link
+                href="/admin/dashboard"
+                className="inline-flex min-w-[190px] items-center justify-center rounded-lg border border-[#C9EB55]/60 bg-[#C9EB55]/12 px-8 py-4 text-sm font-bold uppercase tracking-[0.14em] text-[#DFF58C] shadow-[0_12px_36px_rgba(0,0,0,0.28)] backdrop-blur-sm transition-all duration-300 hover:scale-[1.03] hover:bg-[#C9EB55]/18 hover:shadow-[0_0_22px_rgba(201,235,85,0.25)]"
+              >
+                Admin Dashboard
               </Link>
             ) : null}
           </motion.div>
@@ -319,10 +311,10 @@ export default function Metrics({ showDashboard = false, showAdminDashboard = fa
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {[
-                  { icon: GitBranch, title: "BlockDAG Speed", desc: "Kaspa processes blocks in parallel for unmatched throughput.", delay: 0.1 },
-                  { icon: Clock, title: "Instant Finality", desc: "Transactions confirm in seconds with zero bottlenecks.", delay: 0.2 },
-                  { icon: Battery, title: "Energy Efficiency", desc: "Optimized mining with plasma‑tuned performance.", delay: 0.3 },
-                  { icon: Sparkles, title: "SUPERNOVA Integration", desc: "A next‑gen dashboard built for miners and power users.", delay: 0.4 },
+                  { icon: GitBranch, title: "BlockDAG Throughput", desc: "Kaspa processes blocks in parallel for high-throughput settlement.", delay: 0.1 },
+                  { icon: Clock, title: "Fast Confirmations", desc: "Transactions are designed to confirm quickly as network conditions allow.", delay: 0.2 },
+                  { icon: Battery, title: "Efficient Operations", desc: "Mining workflows are organized for clear monitoring and stable performance.", delay: 0.3 },
+                  { icon: Sparkles, title: "SUPERNOVA Integration", desc: "A next-gen dashboard built for miners and power users.", delay: 0.4 },
                 ].map((item, idx) => (
                   <motion.div
                     key={idx}
@@ -800,7 +792,7 @@ export default function Metrics({ showDashboard = false, showAdminDashboard = fa
                 <div className="mb-4 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/72">
                   Available in Premium Tiers
                 </div>
-                <p className="text-[#C9EB55]/70 text-sm tracking-[0.2em] uppercase">Guardian AI Sentinel</p>
+                <p className="text-[#C9EB55]/70 text-sm tracking-[0.2em] uppercase">Guardian Monitoring Layer</p>
               </motion.div>
 
               <motion.div 
@@ -827,7 +819,7 @@ export default function Metrics({ showDashboard = false, showAdminDashboard = fa
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {[
                   { icon: Scan, title: "Real-Time Threat Detection", desc: "The drone continuously scans the network for anomalies, attacks, and suspicious activity.", delay: 0.1 },
-                  { icon: BellRing, title: "System Monitoring & Alerts", desc: "Live diagnostics, performance tracking, and instant alerts for critical events.", delay: 0.2 },
+                  { icon: BellRing, title: "System Monitoring & Alerts", desc: "Live diagnostics, performance tracking, and timely alerts for critical events.", delay: 0.2 },
                   { icon: Shield, title: "Emergency Response Protocol", desc: "Auto-recovery, fallback pipelines, and rapid stabilization during unexpected failures.", delay: 0.3 },
                   { icon: Crown, title: "VIP Protection Mode", desc: "Exclusive to upgraded users — priority routing, enhanced security layers, and faster incident response.", delay: 0.4 },
                 ].map((item, idx) => (
@@ -905,31 +897,79 @@ export default function Metrics({ showDashboard = false, showAdminDashboard = fa
                     Ready to Enter SUPERNOVA?
                   </h2>
                   <p className="text-lg font-semibold text-[#C9EB55] mb-4" style={{ textShadow: "0 0 20px rgba(201,235,85,0.35)" }}>
-                    Join the next generation of Kaspa mining — secure, optimized, and powered by AI.
+                    Join the next generation of Kaspa mining: secure, organized, and built for serious operators.
                   </p>
                   <p className="text-white/70 text-lg leading-relaxed mb-10">
-                    Activate the SUPERNOVA stack with intelligent guardianship, plasma-grade performance, and premium-grade reliability.
+                    Activate the SUPERNOVA stack with structured monitoring, account controls, and premium-grade reliability.
                   </p>
 
                   <div className="flex justify-center">
-                    <button
+                    <Link
+                      href={showDashboard ? "/dashboard" : "/register"}
                       className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-[rgb(201,235,85)] to-[#a8d430] text-black font-bold text-lg shadow-[0_10px_40px_rgba(201,235,85,0.25)] hover:shadow-[0_12px_48px_rgba(201,235,85,0.35)] transition-all duration-300 border border-[rgb(201,235,85)]/50"
                       style={{ textShadow: "0 0 10px rgba(0,0,0,0.25)" }}
                     >
-                      Launch Your Dashboard
-                    </button>
+                      {showDashboard ? "Open Dashboard" : "Create Account"}
+                    </Link>
                   </div>
                 </div>
               </motion.div>
             </div>
           </section>
 
-          <footer className="border-t border-white/10 mt-32 pt-16 flex flex-col items-center gap-4 text-center">
-            <div className="flex flex-col items-center gap-2">
-              <div className="text-base font-bold tracking-[0.25em] text-white uppercase">SUPERNOVA</div>
-              <div className="text-xs font-medium text-[#C9EB55] tracking-[0.2em]">SNOVAPOOL IO</div>
+          <footer className="w-full bg-[#040506] border-t border-white/5 pt-20 pb-10">
+            <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+              <div className="grid w-full grid-cols-1 justify-between gap-y-10 gap-x-8 sm:grid-cols-2 lg:grid-cols-[repeat(4,1fr)] lg:gap-x-12 xl:gap-x-16 mb-20 items-start">
+                <div className="flex flex-col gap-6 lg:justify-self-start">
+                  <h3 className="text-sm font-semibold text-white uppercase tracking-widest">About</h3>
+                  <div className="flex flex-col items-start gap-4 text-sm text-white/60">
+                    <a href="/about" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">About SUPERNOVA</a>
+                    <a href="/how-it-works" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">How It Works</a>
+                    <a href="/why-supernova" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Why SUPERNOVA</a>
+                    <a href="/security-overview" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Security Overview</a>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-6 lg:justify-self-center lg:border-l lg:border-white/10 lg:pl-6">
+                  <h3 className="text-sm font-semibold text-white uppercase tracking-widest">Support</h3>
+                  <div className="flex flex-col items-start gap-4 text-sm text-white/60">
+                    <a href="/faq" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">FAQ</a>
+                    <a href="/support" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Contact Support</a>
+                    <a href="/support/ticket" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Submit a Ticket</a>
+                    <a href="/support/priority" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Priority Support</a>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-6 lg:justify-self-center lg:border-l lg:border-white/10 lg:pl-6 xl:justify-self-end">
+                  <h3 className="text-sm font-semibold text-white uppercase tracking-widest">Legal</h3>
+                  <div className="flex flex-col items-start gap-4 text-sm text-white/60">
+                    <a href="/terms-of-service" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Terms of Service</a>
+                    <a href="/privacy-policy" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Privacy Policy</a>
+                    <a href="/cookies-policy" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Cookies Policy</a>
+                    <a href="/refund-policy" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Refund Policy</a>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-6 lg:justify-self-end lg:border-l lg:border-white/10 lg:pl-6">
+                  <h3 className="text-sm font-semibold text-white uppercase tracking-widest">Connect</h3>
+                  <div className="flex flex-col items-start gap-4 text-sm text-white/60">
+                    <a href="#" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Telegram</a>
+                    <a href="#" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Instagram</a>
+                    <a href="#" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">YouTube</a>
+                    <a href="#" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Facebook</a>
+                    <a href="#" className="inline-flex w-fit max-w-fit flex-none leading-none hover:text-[#C9EB55] transition-colors">Discord</a>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-white/5 pt-10 flex flex-col items-center gap-4 text-center">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="text-base font-bold tracking-[0.25em] text-white uppercase">SUPERNOVA</div>
+                  <div className="text-xs font-medium text-[#C9EB55] tracking-[0.2em]">SNOVAPOOL IO</div>
+                </div>
+                <div className="text-xs text-white/40 mt-2">© 2026 SUPERNOVA All rights reserved</div>
+              </div>
             </div>
-            <div className="text-xs text-gray-600 mt-2">© 2026 SUPERNOVA All rights reserved</div>
           </footer>
         </div>
       </div>

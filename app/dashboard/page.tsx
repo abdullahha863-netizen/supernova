@@ -1599,7 +1599,7 @@ export default function DashboardPage() {
           <div className="rounded-3xl border border-[#C9EB55]/18 bg-white/[0.03] p-6 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-xl font-bold text-[#C9EB55]">Latest Payouts</h2>
-              <span className="text-xs text-white/45">Full payout history coming soon</span>
+              <span className="text-xs text-white/45">Recent payout activity</span>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">

@@ -156,7 +156,7 @@ function RegisterForm() {
         <div className="nova-glow rounded-2xl p-7 md:p-8 w-full max-w-lg relative overflow-hidden">
           <div className="space-y-1 mb-6">
             <h1 className="text-3xl font-bold text-[#C9EB55]">Create Your SUPERNOVA Account</h1>
-            <p className="text-white/70 text-sm">Secure onboarding with instant access to your member dashboard.</p>
+            <p className="text-white/70 text-sm">Secure onboarding for your member dashboard.</p>
           </div>
 
           {referralCode ? (

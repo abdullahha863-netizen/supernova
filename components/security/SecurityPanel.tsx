@@ -382,7 +382,7 @@ export default function SecurityPanel() {
 
       <div className="space-y-2 rounded-2xl border border-red-400/18 bg-red-500/[0.05] p-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.15em] text-red-200/80">Instant Account Freeze</p>
+          <p className="text-xs uppercase tracking-[0.15em] text-red-200/80">Emergency Account Freeze</p>
           <p className="mt-1 text-[11px] text-white/55">Use this only when you want to lock the account immediately.</p>
         </div>
         <label className="text-xs uppercase tracking-[0.15em] text-white/50">Confirm PIN and lock now</label>

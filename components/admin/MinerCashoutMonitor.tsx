@@ -113,7 +113,7 @@ export default function MinerCashoutMonitor() {
           <p className="text-[11px] uppercase tracking-[0.2em] text-white/42">How It Works</p>
           <div className="mt-3 space-y-2 text-sm text-white/55">
             <p>1. See who requested cashout.</p>
-            <p>2. Click the button beside the miner.</p>
+            <p>2. Open the miner review details.</p>
             <p>3. Review the full investigation page before deciding.</p>
           </div>
         </div>
@@ -123,7 +123,7 @@ export default function MinerCashoutMonitor() {
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-[11px] uppercase tracking-[0.2em] text-white/42">Cashout Queue</p>
-            <h2 className="mt-2 text-2xl font-black text-white">Miners Listed Under Each Other</h2>
+            <h2 className="mt-2 text-2xl font-black text-white">Pending Cashout Requests</h2>
           </div>
           <p className="text-sm text-white/50">Each row has one action button that takes you to the separate details page.</p>
         </div>
@@ -143,7 +143,7 @@ export default function MinerCashoutMonitor() {
               className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full px-2 py-1 text-sm text-white/45 transition-colors hover:text-white/80"
               aria-label="Clear search"
             >
-              ×
+              X
             </button>
           ) : null}
         </div>

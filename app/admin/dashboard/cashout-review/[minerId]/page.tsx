@@ -694,7 +694,7 @@ export default function CashoutReviewPage() {
           ) : null}
 
           {fraudAssessment ? (
-            <Section title="Fraud Decision Panel" description="Bank-grade risk assessment system with automated scoring and signal analysis.">
+            <Section title="Risk Review Panel" description="Internal risk assessment with automated scoring and signal analysis.">
               {/* ── Risk Summary Header ────────────────────────────────────────────── */}
               <div className="mb-6 rounded-2xl border border-[#C9EB55]/25 bg-[#C9EB55]/8 p-5">
                 <div className="flex items-center justify-between">

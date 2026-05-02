@@ -863,7 +863,7 @@ export default function DashboardSettingsPage() {
                       disabled={isApplyingRenewal}
                       className="rounded-xl border border-[#C9EB55]/35 bg-[#C9EB55]/12 px-4 py-2 text-sm font-semibold text-[#C9EB55] hover:bg-[#C9EB55]/20 disabled:opacity-60"
                     >
-                      {isApplyingRenewal ? "Processing Renewal..." : "Simulate Renewal Charge"}
+                      {isApplyingRenewal ? "Processing Renewal..." : "Apply Renewal Discount"}
                     </button>
                     {renewalMessage ? <p className="text-xs text-white/65">{renewalMessage}</p> : null}
                   </div>
@@ -937,7 +937,7 @@ export default function DashboardSettingsPage() {
                   <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
                     <h3 className="text-sm font-semibold text-white">Legal Terms and Protection</h3>
                     <ul className="mt-3 space-y-2 text-xs text-white/70">
-                      <li>1. Supernov1 may approve, deny, reverse, or suspend rewards in cases of abuse, refunds, chargebacks, or policy violations.</li>
+                      <li>1. SUPERNOVA may approve, deny, reverse, or suspend rewards in cases of abuse, refunds, chargebacks, or policy violations.</li>
                       <li>2. Reward decisions are final after internal risk review and audit verification.</li>
                       <li>3. Program terms, reward thresholds, and eligibility criteria may be updated at any time.</li>
                       <li>4. Attempting to manipulate the program can result in reward cancellation and account action.</li>

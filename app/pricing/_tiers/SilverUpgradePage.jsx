@@ -220,7 +220,7 @@ export default function SilverUpgradePage() {
                   <span className="text-xs font-medium text-white/80">Advanced Monitoring</span>
                 </div>
                 <div className="text-lg font-bold text-[#C9EB55] mb-1">Real-time</div>
-                <p className="text-xs text-white leading-relaxed">Live hash rate tracking, temperature monitoring, and instant alerts for any anomalies in your mining operation.</p>
+                <p className="text-xs text-white leading-relaxed">Live hash rate tracking, temperature monitoring, and timely alerts for anomalies in your mining operation.</p>
               </motion.div>
 
               <motion.div
@@ -453,7 +453,7 @@ export default function SilverUpgradePage() {
               },
               {
                 q: "Can I upgrade from Starter to Silver?",
-                a: "Yes, you can upgrade instantly from your dashboard. The upgrade takes effect immediately, and you'll only be charged the difference for the remaining billing period."
+                a: "Yes, you can upgrade from your dashboard. The upgrade is applied after checkout is completed, and you'll only be charged the difference for the remaining billing period."
               },
               {
                 q: "Are there any discounts or promo codes?",
@@ -498,9 +498,9 @@ export default function SilverUpgradePage() {
         <footer className="border-t border-white/10 mt-32 pt-16 flex flex-col items-center gap-4 text-center">
           <div className="flex flex-col items-center gap-2">
             <div className="text-base font-bold tracking-[0.25em] text-white uppercase">SUPERNOVA</div>
-            <div className="text-xs font-medium text-[#C9EB55] tracking-[0.2em]">SNOVAPOOL IO</div>
+            <div className="text-xs font-medium text-[#C9EB55] tracking-[0.2em]">SUPERNOVA POOL</div>
           </div>
-          <div className="text-xs text-gray-600 mt-2">© 2026 SUPERNOVA All rights reserved</div>
+          <div className="text-xs text-gray-600 mt-2">&copy; 2026 SUPERNOVA. All rights reserved.</div>
         </footer>
       </div>
     </div>
